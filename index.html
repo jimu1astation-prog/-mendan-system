@@ -480,7 +480,7 @@ async function transcribeAudio(file, type){
       headers: { 'authorization': aaiKey, 'content-type': 'application/json' },
       body: JSON.stringify({
         audio_url: upload_url,
-        speech_model: 'universal',
+        speech_models: ['universal-3-pro', 'universal-2'],
         language_detection: true,
         speaker_labels: true,
         speakers_expected: 2
