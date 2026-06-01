@@ -5,7 +5,7 @@ const path = require('path');
 
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json({ limit: '100mb' }));
 app.use(express.static(path.join(__dirname)));
 
 // Claude API中継
@@ -27,8 +27,8 @@ app.post('/api/claude', async (req, res) => {
   }
 });
 
-// AssemblyAI アップロード中継
-app.post('/api/aai/upload', async (req, res) => {
+// AssemblyAI アップロード中継（バイナリ対応）
+app.post('/api/aai/upload', express.raw({ type: '*/*', limit: '500mb' }), async (req, res) => {
   try {
     const response = await fetch('https://api.assemblyai.com/v2/upload', {
       method: 'POST',
