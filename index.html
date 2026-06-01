@@ -463,7 +463,7 @@ async function transcribeAudio(file, type){
     label.textContent = '音声をアップロード中...';
     fill.style.width = '20%';
 
-    const uploadRes = await fetch('https://api.assemblyai.com/v2/upload', {
+    const uploadRes = await fetch('/api/aai/upload', {
       method: 'POST',
       headers: { 'authorization': aaiKey, 'content-type': 'application/octet-stream' },
       body: file
@@ -475,7 +475,7 @@ async function transcribeAudio(file, type){
     label.textContent = '文字起こしを開始中...';
     fill.style.width = '40%';
 
-    const transcriptRes = await fetch('https://api.assemblyai.com/v2/transcript', {
+    const transcriptRes = await fetch('/api/aai/transcript', {
       method: 'POST',
       headers: { 'authorization': aaiKey, 'content-type': 'application/json' },
       body: JSON.stringify({
@@ -496,7 +496,7 @@ async function transcribeAudio(file, type){
     let result;
     for(let i=0; i<60; i++){
       await new Promise(r=>setTimeout(r,5000)); // 5秒待つ
-      const pollRes = await fetch(`https://api.assemblyai.com/v2/transcript/${id}`, {
+      const pollRes = await fetch(`/api/aai/transcript/${id}`, {
         headers: { 'authorization': aaiKey }
       });
       result = await pollRes.json();
@@ -597,7 +597,7 @@ async function runAnalysis(type){
 
   try{
     const prompt = buildPrompt(type);
-    const res = await fetch('https://api.anthropic.com/v1/messages',{
+    const res = await fetch('/api/claude',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
       body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:2000,system:prompt.system,messages:[{role:'user',content:prompt.user}]})
