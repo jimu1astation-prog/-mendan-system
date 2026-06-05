@@ -2,7 +2,6 @@ const express = require('express');
 const fetch = require('node-fetch');
 const cors = require('cors');
 const path = require('path');
-
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '100mb' }));
@@ -27,7 +26,26 @@ app.post('/api/claude', async (req, res) => {
   }
 });
 
-// AssemblyAI アップロード中継（バイナリ対応）
+// GAS中継（CORSバイパス）
+app.post('/api/gas', async (req, res) => {
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycby0yEh3ZU5cmQPRYve1r_Axhxv8cgE7NnoVX5goEk3skATjzvLgLfBrF1nUF13-NmCQhg/exec';
+  try {
+    const response = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body),
+      redirect: 'follow'
+    });
+    const text = await response.text();
+    let data;
+    try { data = JSON.parse(text); } catch(e) { data = { success: true, raw: text }; }
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// AssemblyAI アップロード中継
 app.post('/api/aai/upload', express.raw({ type: '*/*', limit: '500mb' }), async (req, res) => {
   try {
     const response = await fetch('https://api.assemblyai.com/v2/upload', {
@@ -45,7 +63,7 @@ app.post('/api/aai/upload', express.raw({ type: '*/*', limit: '500mb' }), async 
   }
 });
 
-// AssemblyAI 文字起こし開始中継
+// AssemblyAI 文字起こし開始
 app.post('/api/aai/transcript', async (req, res) => {
   try {
     const response = await fetch('https://api.assemblyai.com/v2/transcript', {
@@ -63,7 +81,7 @@ app.post('/api/aai/transcript', async (req, res) => {
   }
 });
 
-// AssemblyAI 結果取得中継
+// AssemblyAI 結果取得
 app.get('/api/aai/transcript/:id', async (req, res) => {
   try {
     const response = await fetch(`https://api.assemblyai.com/v2/transcript/${req.params.id}`, {
