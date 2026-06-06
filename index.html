@@ -348,14 +348,14 @@ function buildPrompt(type){
   const sys=`あなたは登録支援機関の面談記録を処理する専門AIです。外国人技能実習生・特定技能外国人（主に介護職）との面談記録を分析します。言語が混在していても内容を正確に理解して日本語で出力してください。スコアは必ず発言の根拠とセットで出力してください。出力はJSONのみ。前置き・後書き・コードブロック記号は一切不要です。`;
   if(type==='pre'){
     const cl=checks(['cl-pre-r1','cl-pre-r2','cl-pre-g1','cl-pre-g2','cl-pre-c1','cl-pre-rel1']);
-    return {system:sys,user:`事前面談を分析しJSONのみで返してください。\n氏名:${g('pre-name')} 年齢:${g('pre-age')} 言語:${g('pre-lang')} 在留資格:${g('pre-visa')} 日本語試験:${g('pre-jlpt')}\n面談日:${g('pre-date')} 希望エリア:${g('pre-area')} 希望職種:${g('pre-job')}\n確認済みチェック項目:${cl.join('、')||'なし'}\n面談テキスト:"""${g('pre-text')}"""\nJSON形式:{"translation":"日本語訳（日本語ならnull）","summary":"面談要約200字","resign_reason":"転職・応募理由","motivation_detail":"向上心・将来目標","personality":"性格・協調力・宗教配慮","concerns":"懸念事項（なければ「特になし」）","scores":{"motivation":整数1〜10,"japanese_skill":整数1〜10,"communication":整数1〜10,"aptitude":整数1〜10,"teamwork":整数1〜10},"score_comments":{"motivation":"根拠30字","japanese_skill":"根拠30字","communication":"根拠30字","aptitude":"根拠30字","teamwork":"根拠30字"},"matching":整数0〜100,"matching_reason":"マッチング理由50字","overall_comment":"総合所見100字","next_actions":["対応事項1","対応事項2"]}`};
+    return {system:sys,user:`事前面談を分析しJSONのみで返してください。\n氏名:${g('pre-name')} 年齢:${g('pre-age')} 言語:${g('pre-lang')} 在留資格:${g('pre-visa')} 日本語試験:${g('pre-jlpt')}\n面談日:${g('pre-date')} 希望エリア:${g('pre-area')} 希望職種:${g('pre-job')}\n確認済みチェック項目:${cl.join('、')||'なし'}\n面談テキスト:"""${g('pre-text').slice(0,3000)}"""\nJSON形式:{"translation":"日本語訳（日本語ならnull）","summary":"面談要約200字","resign_reason":"転職・応募理由","motivation_detail":"向上心・将来目標","personality":"性格・協調力・宗教配慮","concerns":"懸念事項（なければ「特になし」）","scores":{"motivation":整数1〜10,"japanese_skill":整数1〜10,"communication":整数1〜10,"aptitude":整数1〜10,"teamwork":整数1〜10},"score_comments":{"motivation":"根拠30字","japanese_skill":"根拠30字","communication":"根拠30字","aptitude":"根拠30字","teamwork":"根拠30字"},"matching":整数0〜100,"matching_reason":"マッチング理由50字","overall_comment":"総合所見100字","next_actions":["対応事項1","対応事項2"]}`};
   }
   if(type==='reg'){
     const cl=checks(['cl-reg-w1','cl-reg-w1b','cl-reg-w2','cl-reg-hr1','cl-reg-s1','cl-reg-s2','cl-reg-l1','cl-reg-l2','cl-reg-g1','cl-reg-l3']);
-    return {system:sys,user:`定期面談を分析しJSONのみで返してください。\n氏名:${g('reg-name')} 言語:${g('reg-lang')} 所属法人:${g('reg-company')}\n面談日:${g('reg-date')} 第${g('reg-count')}回\n前回スコア→モチベ:${g('reg-prev-moti')||'初回'} 適応度:${g('reg-prev-adapt')||'初回'} 安定度:${g('reg-prev-stable')||'初回'} 日本語:${g('reg-prev-jp')||'初回'}\n確認済みチェック項目:${cl.join('、')||'なし'}\n夜勤メモ:${g('cl-reg-w1n')} 勉強メモ:${g('cl-reg-s1n')} 帰国メモ:${g('cl-reg-l2n')} 将来メモ:${g('cl-reg-g1n')}\n面談テキスト:"""${g('reg-text')}"""\nJSON形式:{"translation":"日本語訳（日本語ならnull）","summary":"面談要約200字","work_status":"仕事・職場状況","human_relations":"人間関係","study_status":"勉強・資格状況","life_status":"私生活・健康","future_goal":"将来目標・進捗","concerns":"懸念事項（なければ「特になし」）","scores":{"motivation":整数1〜10,"adaptation":整数1〜10,"stability":整数1〜10,"japanese_skill":整数1〜10},"score_comments":{"motivation":"根拠30字","adaptation":"根拠30字","stability":"根拠30字","japanese_skill":"根拠30字"},"overall_comment":"総合所見100字","alert":null,"alert_level":"none または caution または urgent","next_actions":["対応事項1","対応事項2"]}`};
+    return {system:sys,user:`定期面談を分析しJSONのみで返してください。\n氏名:${g('reg-name')} 言語:${g('reg-lang')} 所属法人:${g('reg-company')}\n面談日:${g('reg-date')} 第${g('reg-count')}回\n前回スコア→モチベ:${g('reg-prev-moti')||'初回'} 適応度:${g('reg-prev-adapt')||'初回'} 安定度:${g('reg-prev-stable')||'初回'} 日本語:${g('reg-prev-jp')||'初回'}\n確認済みチェック項目:${cl.join('、')||'なし'}\n夜勤メモ:${g('cl-reg-w1n')} 勉強メモ:${g('cl-reg-s1n')} 帰国メモ:${g('cl-reg-l2n')} 将来メモ:${g('cl-reg-g1n')}\n面談テキスト:"""${g('reg-text').slice(0,3000)}"""\nJSON形式:{"translation":"日本語訳（日本語ならnull）","summary":"面談要約200字","work_status":"仕事・職場状況","human_relations":"人間関係","study_status":"勉強・資格状況","life_status":"私生活・健康","future_goal":"将来目標・進捗","concerns":"懸念事項（なければ「特になし」）","scores":{"motivation":整数1〜10,"adaptation":整数1〜10,"stability":整数1〜10,"japanese_skill":整数1〜10},"score_comments":{"motivation":"根拠30字","adaptation":"根拠30字","stability":"根拠30字","japanese_skill":"根拠30字"},"overall_comment":"総合所見100字","alert":null,"alert_level":"none または caution または urgent","next_actions":["対応事項1","対応事項2"]}`};
   }
   if(type==='urg'){
-    return {system:sys,user:`緊急面談を分析しJSONのみで返してください。\n氏名:${g('urg-name')} 言語:${g('urg-lang')} 所属法人:${g('urg-company')}\n面談日:${g('urg-date')} 問題種別:${g('urg-type')}\n面談テキスト:"""${g('urg-text')}"""\nJSON形式:{"translation":"日本語訳（日本語ならnull）","summary":"問題概要150字","situation":"現在の状況50字","person_wish":"本人の意向50字","background":"経緯50字","urgency":整数1〜5,"urgency_reason":"緊急度の根拠50字","recommended_action":"推奨対応100字","need_company_contact":true,"overall_comment":"総合所見100字","alert":"アラート内容（必須）","next_actions":["対応事項1","対応事項2"]}`};
+    return {system:sys,user:`緊急面談を分析しJSONのみで返してください。\n氏名:${g('urg-name')} 言語:${g('urg-lang')} 所属法人:${g('urg-company')}\n面談日:${g('urg-date')} 問題種別:${g('urg-type')}\n面談テキスト:"""${g('urg-text').slice(0,3000)}"""\nJSON形式:{"translation":"日本語訳（日本語ならnull）","summary":"問題概要150字","situation":"現在の状況50字","person_wish":"本人の意向50字","background":"経緯50字","urgency":整数1〜5,"urgency_reason":"緊急度の根拠50字","recommended_action":"推奨対応100字","need_company_contact":true,"overall_comment":"総合所見100字","alert":"アラート内容（必須）","next_actions":["対応事項1","対応事項2"]}`};
   }
 }
 
@@ -367,14 +367,13 @@ async function runAnalysis(type){
   loader.classList.add('show'); result.innerHTML='';
   try{
     const prompt=buildPrompt(type);
-    const res=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:3000,system:prompt.system,messages:[{role:'user',content:prompt.user}]})});
+    const res=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:4000,system:prompt.system,messages:[{role:'user',content:prompt.user}]})});
     const data=await res.json();
     if(data.error) throw new Error(data.error.message);
     let rawText=data.content.map(c=>c.text||'').join('');
-rawText=rawText.replace(/```json|```/g,'').trim();
-rawText=rawText.replace(/[\u0000-\u001F\u007F]/g,' ');
-rawText=rawText.replace(/[""]/g,'"').replace(/['']/g,"'");
-const d=JSON.parse(rawText);
+    rawText=rawText.replace(/```json|```/g,'').trim();
+    rawText=rawText.replace(/[\u0000-\u001F\u007F]/g,' ').replace(/[""]/g,'"').replace(/['']/g,"'");
+    const d=JSON.parse(rawText);
     let html='';
     if(type==='pre') html=renderPre(d);
     else if(type==='reg') html=renderReg(d);
@@ -512,36 +511,4 @@ async function generateWordReport(d,btnId){
     const sc2=d.scores||{},ps=d.prevScores||{},scc=d.scoreComments||{};
     const doc2=new Document({styles:{default:{document:{run:{font:'Arial',size:20}}}},sections:[{properties:{page:{size:{width:PAGE_W,height:16838},margin:{top:MARGIN,right:MARGIN,bottom:MARGIN,left:MARGIN}}},children:[
       new Paragraph({alignment:AlignmentType.CENTER,spacing:{after:200},children:[new TextRun({text:'特定技能　定期面談報告書',bold:true,size:32,font:'Arial',color:DARK})]}),
-      new Table({width:{size:CW,type:WidthType.DXA},columnWidths:[6000,3026],rows:[new TableRow({children:[new TableCell({borders:nbds,width:{size:6000,type:WidthType.DXA},children:[new Paragraph({children:[new TextRun({text:'登録支援機関名：',size:18,font:'Arial'}),new TextRun({text:localStorage.getItem('org_name')||'　　　　　　　',bold:true,size:18,font:'Arial'})]})]})  ,new TableCell({borders:nbds,width:{size:3026,type:WidthType.DXA},children:[new Paragraph({alignment:AlignmentType.RIGHT,children:[new TextRun({text:'作成日：',size:18,font:'Arial'}),new TextRun({text:dateStr,bold:true,size:18,font:'Arial'})]})]})]})]})  ,sp(),
-      sec('1. 基本情報'),sp(),
-      new Table({width:{size:CW,type:WidthType.DXA},columnWidths:[2500,7026],rows:[new TableRow({children:[hcl('氏名',2500),cl(d.name||'',{width:7026,bold:true})]}),new TableRow({children:[hcl('国籍',2500),cl((d.lang||'').replace('語',''),{width:7026})]}),new TableRow({children:[hcl('所属法人・施設名',2500),cl(d.company||'',{width:7026,bold:true})]}),new TableRow({children:[hcl('面談実施日',2500),cl(d.date||'',{width:7026})]}),new TableRow({children:[hcl('使用言語',2500),cl(d.lang||'',{width:7026})]}),new TableRow({children:[hcl('面談担当者',2500),cl(d.staff||'',{width:7026})]})]}),sp(),
-      sec('2. チェックリスト'),sp(),
-      new Table({width:{size:CW,type:WidthType.DXA},columnWidths:[500,3500,5026],rows:[new TableRow({children:[cl('確認',{width:500,bold:true,bg:DARK,color:WHITE,center:true}),cl('確認項目',{width:3500,bold:true,bg:DARK,color:WHITE}),cl('メモ',{width:5026,bold:true,bg:DARK,color:WHITE})]}),chkSub('▌ 仕事'),chkRow(cw.familiar,'仕事への慣れ・困りごとを確認した',''),chkRow(cw.nightShift,'月の夜勤回数を確認した',`月 ${cw.nightShift_memo||'　'} 回`),chkRow(cw.renrakuHoukoku,'報連相・出勤状況を確認した',''),chkRow(cw.supervisor,'上司・同僚との関係を確認した',''),chkSub('▌ 勉強・資格'),chkRow(cst.jpStudy,'日本語学習状況を確認した',cst.jpStudy_memo||''),chkRow(cst.kaigofukushi,'介護福祉士等の資格取得意向を確認した',''),chkSub('▌ 私生活・健康'),chkRow(cli.remittance,'仕送り・貯金・健康状態を確認した',''),chkRow(cli.holiday_trip,'一時帰国の予定を確認した',cli.holiday_trip_memo||''),chkRow(cli.concerns,'困っていること・聞きたいことを確認した',''),chkSub('▌ 将来の目標'),chkRow(cfu.yearsInJapan,'日本での就労希望年数・将来目標を確認した',cfu.yearsInJapan_memo||'')]}),sp(),
-      sec('3. 面談内容の要約'),sp(),
-      new Table({width:{size:CW,type:WidthType.DXA},columnWidths:[2000,7026],rows:[new TableRow({children:[hcl('仕事・職場',2000),cl(d.workStatus||'',{width:7026,size:18})]}),new TableRow({children:[hcl('人間関係',2000),cl(d.humanRelations||'',{width:7026,size:18})]}),new TableRow({children:[hcl('勉強・資格',2000),cl(d.studyStatus||'',{width:7026,size:18})]}),new TableRow({children:[hcl('私生活・健康',2000),cl(d.lifeStatus||'',{width:7026,size:18})]}),new TableRow({children:[hcl('将来目標',2000),cl(d.futureGoal||'',{width:7026,size:18})]}),new TableRow({children:[hcl('懸念事項',2000),cl(d.concerns||'特になし',{width:7026,size:18,bg:d.concerns&&d.concerns!=='特になし'?YELLOW_BG:WHITE})]})]}),sp(),
-      sec('4. 評価スコア'),sp(),
-      new Table({width:{size:CW,type:WidthType.DXA},columnWidths:[2000,3000,4026],rows:[new TableRow({children:[hcl('評価軸',2000),hcl('スコア（1〜10）',3000),hcl('評価コメント',4026)]}),scRow('モチベーション',sc2.motivation||0,ps.motivation,scc.motivation),scRow('職場適応度',sc2.adaptation||0,ps.adaptation,scc.adaptation),scRow('精神的安定度',sc2.stability||0,ps.stability,scc.stability),scRow('日本語力',sc2.japanese_skill||0,ps.japanese_skill,scc.japanese_skill)]}),sp(),
-      sec('5. アラート判定'),sp(),
-      new Table({width:{size:CW,type:WidthType.DXA},columnWidths:[CW],rows:[new TableRow({children:[new TableCell({borders:bds,width:{size:CW,type:WidthType.DXA},shading:{fill:alertBg,type:ShadingType.CLEAR},margins:{top:80,bottom:80,left:120,right:120},children:[new Paragraph({children:[new TextRun({text:alertTxt,bold:d.alertLevel!=='none',size:18,font:'Arial'})]})]})]})]}),sp(),
-      sec('6. 総合所見'),sp(),
-      new Table({width:{size:CW,type:WidthType.DXA},columnWidths:[2000,7026],rows:[new TableRow({children:[hcl('AI生成所見',2000),cl(d.overallComment||'',{width:7026,size:18})]}),new TableRow({children:[hcl('担当者コメント',2000),cl('　',{width:7026,size:18})]})]}),sp(),
-      sec('7. 次回面談予定'),sp(),
-      new Table({width:{size:CW,type:WidthType.DXA},columnWidths:[2500,6526],rows:[new TableRow({children:[hcl('次回面談予定日',2500),cl('　',{width:6526})]}),new TableRow({children:[hcl('確認事項・宿題',2500),cl('　',{width:6526})]})]}),sp(),
-      new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({text:'本報告書は登録支援機関が作成し、担当者が内容を確認・承認したものです。',size:16,font:'Arial',color:'888888',italics:true})]})
-    ]}]});
-    const blob=await Packer.toBlob(doc2);
-    const url=URL.createObjectURL(blob),a2=window.document.createElement('a');
-    a2.href=url; a2.download=`定期面談報告書_${(d.name||'').replace(/\s/g,'_')}_${(d.date||'').replace(/-/g,'')}.docx`;
-    a2.click(); URL.revokeObjectURL(url);
-    if(btn){btn.textContent='✅ ダウンロード完了';btn.style.cssText='background:#d1fae5;border-color:#065f46;color:#065f46';}
-    setTimeout(()=>{if(btn){btn.textContent='📄 Word報告書を生成・ダウンロード';btn.disabled=false;btn.style.cssText='background:#2E75B6;color:#fff;border-color:#2E75B6';}},3000);
-  }catch(e){
-    console.error(e);
-    if(btn){btn.textContent='❌ エラー: '+e.message;btn.disabled=false;}
-    alert('Wordエラー:\n'+e.message);
-    setTimeout(()=>{if(btn){btn.textContent='📄 Word報告書を生成・ダウンロード';btn.style.cssText='background:#2E75B6;color:#fff;border-color:#2E75B6';}},3000);
-  }
-}
-</script>
-</body>
-</html>
+      new Table({width:{size:CW,type:WidthType.DXA},columnWidths:[6000,3026],rows:[new TableRow({children:[new TableCell({borders:nbds,width:{size:6000,type:WidthType.DXA},children:[new Paragraph({children:[new TextRun({text:'登録支援機関名：',size:18,font:'Arial'}),new TextRun({text:localStorage.getItem('org_name')||'　　　　　　　',bold:true,size:18,font:'Arial'})]})]})  ,new TableCell({borders:nbds,width:{size:3026,type:WidthType.DXA},children:[new Paragraph({alignment:AlignmentType.RIGHT,children:[new TextRun({text:'作成日：'
