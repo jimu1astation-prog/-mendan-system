@@ -370,8 +370,11 @@ async function runAnalysis(type){
     const res=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:2000,system:prompt.system,messages:[{role:'user',content:prompt.user}]})});
     const data=await res.json();
     if(data.error) throw new Error(data.error.message);
-    const text=data.content.map(c=>c.text||'').join('').replace(/```json|```/g,'').trim();
-    const d=JSON.parse(text);
+    let rawText=data.content.map(c=>c.text||'').join('');
+rawText=rawText.replace(/```json|```/g,'').trim();
+rawText=rawText.replace(/[\u0000-\u001F\u007F]/g,' ');
+rawText=rawText.replace(/[""]/g,'"').replace(/['']/g,"'");
+const d=JSON.parse(rawText);
     let html='';
     if(type==='pre') html=renderPre(d);
     else if(type==='reg') html=renderReg(d);
