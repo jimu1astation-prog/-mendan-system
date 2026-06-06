@@ -10,6 +10,15 @@ app.use(express.static(path.join(__dirname)));
 // Claude API中継
 app.post('/api/claude', async (req, res) => {
   try {
+    const body = req.body;
+    if (body.messages) {
+      body.messages = body.messages.map(m => ({
+        ...m,
+        content: typeof m.content === 'string'
+          ? m.content.replace(/[\u0000-\u001F\u007F]/g, ' ')
+          : m.content
+      }));
+    }
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -17,7 +26,7 @@ app.post('/api/claude', async (req, res) => {
         'x-api-key': process.env.ANTHROPIC_API_KEY,
         'anthropic-version': '2023-06-01'
       },
-      body: JSON.stringify(req.body)
+      body: JSON.stringify(body)
     });
     const data = await response.json();
     res.json(data);
