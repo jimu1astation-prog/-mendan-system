@@ -367,7 +367,7 @@ async function runAnalysis(type){
   loader.classList.add('show'); result.innerHTML='';
   try{
     const prompt=buildPrompt(type);
-    const res=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:2000,system:prompt.system,messages:[{role:'user',content:prompt.user}]})});
+    const res=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:3000,system:prompt.system,messages:[{role:'user',content:prompt.user}]})});
     const data=await res.json();
     if(data.error) throw new Error(data.error.message);
     let rawText=data.content.map(c=>c.text||'').join('');
