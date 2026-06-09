@@ -277,6 +277,9 @@ function switchTab(t){
   document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',['pre','reg','urg'][i]===t));
   ['pre','reg','urg'].forEach(p=>document.getElementById('panel-'+p).classList.toggle('active',p===t));
 }
+document.querySelectorAll('[data-tab]').forEach(el=>{
+  el.addEventListener('click',()=>switchTab(el.dataset.tab));
+});
 function saveApiKey(){ const k=document.getElementById('api-key').value.trim(); if(k){localStorage.setItem('claude_api_key',k);document.getElementById('saved-msg').style.display='block';} }
 function saveAaiKey(){ const k=document.getElementById('aai-key').value.trim(); if(k){localStorage.setItem('aai_api_key',k);document.getElementById('saved-msg').style.display='block';} }
 function getApiKey(){ return localStorage.getItem('claude_api_key')||''; }
