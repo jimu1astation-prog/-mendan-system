@@ -123,11 +123,11 @@ textarea{resize:vertical;min-height:180px;line-height:1.75}
     <div style="font-size:11px;color:#888;margin-top:.4rem;padding:.5rem .75rem;background:#f8f9fb;border-radius:6px">💾 報告書生成後「スプレッドシートに自動保存」ボタンでスプレッドシートに直接保存できます</div>
     <p class="saved-ok" id="saved-msg">✓ 保存しました</p>
   </div>
-  <div class="tabs">
-    <div class="tab active" onclick="switchTab('pre')">① 事前面談</div>
-    <div class="tab" onclick="switchTab('reg')">② 定期面談</div>
-    <div class="tab" onclick="switchTab('urg')">③ 緊急面談</div>
-  </div>
+ <div class="tabs">
+  <div class="tab active" data-tab="pre">① 事前面談</div>
+  <div class="tab" data-tab="reg">② 定期面談</div>
+  <div class="tab" data-tab="urg">③ 緊急面談</div>
+</div>
   <div id="panel-pre" class="panel active">
     <div class="card"><div class="card-title">基本情報</div>
       <div class="row3">
