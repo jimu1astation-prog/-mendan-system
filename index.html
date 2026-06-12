@@ -498,13 +498,13 @@ async function generateWordReport(d,btnId){
     const PAGE_W=11906,MARGIN=1080,CW=PAGE_W-MARGIN*2;
     const bd={style:BorderStyle.SINGLE,size:1,color:'AAAAAA'},bds={top:bd,bottom:bd,left:bd,right:bd};
     const nbd={style:BorderStyle.NONE,size:0,color:'FFFFFF'},nbds={top:nbd,bottom:nbd,left:nbd,right:nbd};
-    const cl=(text,opts={})=>{ const{bold=false,bg=WHITE,width=4500,size=18,center=false,color='000000'}=opts; return new TableCell({borders:bds,width:{size:width,type:WidthType.DXA},shading:{fill:bg,type:ShadingType.CLEAR},margins:{top:60,bottom:60,left:120,right:120},verticalAlign:VerticalAlign.CENTER,children:[new Paragraph({alignment:center?AlignmentType.CENTER:AlignmentType.LEFT,children:[new TextRun({text:String(text||''),bold,size,font:'Arial',color})]})]}); };
+    const cl=(text,opts={})=>{ const{bold=false,bg=WHITE,width=4500,size=18,center=false,color='000000'}=opts; return new TableCell({borders:bds,width:{size:width,type:WidthType.DXA},shading:{fill:bg,type:ShadingType.CLEAR},margins:{top:60,bottom:60,left:120,right:120},verticalAlign:VerticalAlign.CENTER,children:[new Paragraph({alignment:center?AlignmentType.CENTER:AlignmentType.LEFT,children:[new TextRun({text:String(text||''),bold,size,font:'Arial',color})]})]})};
     const hcl=(text,width=2500)=>cl(text,{bold:true,bg:DARK,color:WHITE,width,size:18});
     const sec=(text)=>new Paragraph({spacing:{before:200,after:100},border:{bottom:{style:BorderStyle.SINGLE,size:6,color:BLUE,space:1}},children:[new TextRun({text,bold:true,size:22,font:'Arial',color:DARK})]});
     const sp=()=>new Paragraph({spacing:{after:80},children:[]});
     const chkRow=(checked,label,memo)=>new TableRow({children:[cl(checked?'✓':'□',{width:500,center:true,size:18,bold:!!checked}),cl(label,{width:3500,size:17}),cl(memo||'',{width:5026,size:17})]});
-    const chkSub=(text)=>new TableRow({children:[new TableCell({columnSpan:3,borders:bds,width:{size:CW,type:WidthType.DXA},shading:{fill:LIGHT_BLUE,type:ShadingType.CLEAR},margins:{top:60,bottom:60,left:120,right:120},children:[new Paragraph({children:[new TextRun({text,bold:true,size:18,font:'Arial',color:DARK})]})]})]});
-    const scRow=(label,cur,prev,comment)=>{ const diff=cur-(prev||0),ds=prev?`（差：${diff>=0?'+':''}${diff}）`:'',dc=diff<-1?'CC0000':diff>1?'006600':'444444'; return new TableRow({children:[cl(label,{width:2000,bold:true,size:18}),new TableCell({borders:bds,width:{size:3000,type:WidthType.DXA},margins:{top:60,bottom:60,left:120,right:120},children:[new Paragraph({children:[new TextRun({text:`今回：${cur}/10　前回：${prev||'─'}/10　`,bold:true,size:18,font:'Arial'}),new TextRun({text:ds,bold:true,size:18,font:'Arial',color:dc})]})]})  ,cl(comment||'',{width:4026,size:17})]}); };
+    const chkSub=(text)=>new TableRow({children:[new TableCell({columnSpan:3,borders:bds,width:{size:CW,type:WidthType.DXA},shading:{fill:LIGHT_BLUE,type:ShadingType.CLEAR},margins:{top:60,bottom:60,left:120,right:120},children:[new Paragraph({children:[new TextRun({text,bold:true,size:18,font:'Arial',color:DARK})]})]})]}); 
+    const scRow=(label,cur,prev,comment)=>{const diff=cur-(prev||0),ds=prev?`（差：${diff>=0?'+':''}${diff}）`:'',dc=diff<-1?'CC0000':diff>1?'006600':'444444';return new TableRow({children:[cl(label,{width:2000,bold:true,size:18}),new TableCell({borders:bds,width:{size:3000,type:WidthType.DXA},margins:{top:60,bottom:60,left:120,right:120},children:[new Paragraph({children:[new TextRun({text:`今回：${cur}/10　前回：${prev||'─'}/10　`,bold:true,size:18,font:'Arial'}),new TextRun({text:ds,bold:true,size:18,font:'Arial',color:dc})]})]}) ,cl(comment||'',{width:4026,size:17})]})};
     let alertBg=WHITE,alertTxt='';
     if(d.alertLevel==='urgent'){alertBg=RED_BG;alertTxt=`🔴 【要緊急対応】　${d.alertContent||''}`;}
     else if(d.alertLevel==='caution'){alertBg=YELLOW_BG;alertTxt=`🟡 【要注意】　${d.alertContent||''}`;}
@@ -512,6 +512,85 @@ async function generateWordReport(d,btnId){
     const today=new Date(),dateStr=`${today.getFullYear()}年${today.getMonth()+1}月${today.getDate()}日`;
     const ck=d.checks||{},cw=ck.work||{},cst=ck.study||{},cli=ck.life||{},cfu=ck.future||{};
     const sc2=d.scores||{},ps=d.prevScores||{},scc=d.scoreComments||{};
-    const doc2=new Document({styles:{default:{document:{run:{font:'Arial',size:20}}}},sections:[{properties:{page:{size:{width:PAGE_W,height:16838},margin:{top:MARGIN,right:MARGIN,bottom:MARGIN,left:MARGIN}}},children:[
-      new Paragraph({alignment:AlignmentType.CENTER,spacing:{after:200},children:[new TextRun({text:'特定技能　定期面談報告書',bold:true,size:32,font:'Arial',color:DARK})]}),
-      new Table({width:{size:CW,type:WidthType.DXA},columnWidths:[6000,3026],rows:[new TableRow({children:[new TableCell({borders:nbds,width:{size:6000,type:WidthType.DXA},children:[new Paragraph({children:[new TextRun({text:'登録支援機関名：',size:18,font:'Arial'}),new TextRun({text:localStorage.getItem('org_name')||'　　　　　　　',bold:true,size:18,font:'Arial'})]})]})  ,new TableCell({borders:nbds,width:{size:3026,type:WidthType.DXA},children:[new Paragraph({alignment:AlignmentType.RIGHT,children:[new TextRun({text:'作成日：'
+    const doc2=new Document({
+      styles:{default:{document:{run:{font:'Arial',size:20}}}},
+      sections:[{
+        properties:{page:{size:{width:PAGE_W,height:16838},margin:{top:MARGIN,right:MARGIN,bottom:MARGIN,left:MARGIN}}},
+        children:[
+          new Paragraph({alignment:AlignmentType.CENTER,spacing:{after:200},children:[new TextRun({text:'特定技能　定期面談報告書',bold:true,size:32,font:'Arial',color:DARK})]}),
+          new Table({width:{size:CW,type:WidthType.DXA},columnWidths:[6000,3026],rows:[
+            new TableRow({children:[
+              new TableCell({borders:nbds,width:{size:6000,type:WidthType.DXA},children:[new Paragraph({children:[new TextRun({text:'登録支援機関名：',size:18,font:'Arial'}),new TextRun({text:localStorage.getItem('org_name')||'　　　　　　　',bold:true,size:18,font:'Arial'})]})]}) ,
+              new TableCell({borders:nbds,width:{size:3026,type:WidthType.DXA},children:[new Paragraph({alignment:AlignmentType.RIGHT,children:[new TextRun({text:'作成日：'+dateStr,size:18,font:'Arial'})]})]})
+            ]})
+          ]}),
+          sp(),
+          new Table({width:{size:CW,type:WidthType.DXA},columnWidths:[2500,7026],rows:[
+            new TableRow({children:[hcl('氏名',2500),cl(d.name||'',{width:7026,bold:true,size:20})]}),
+            new TableRow({children:[hcl('所属法人・施設',2500),cl(d.company||'',{width:7026})]}),
+            new TableRow({children:[hcl('面談日・回数',2500),cl(`${d.date||''}　（第${d.count||'─'}回）`,{width:7026})]}),
+            new TableRow({children:[hcl('言語',2500),cl(d.lang||'',{width:7026})]}),
+            new TableRow({children:[hcl('担当支援員',2500),cl(d.staff||'',{width:7026})]}),
+          ]}),
+          sp(),
+          new Table({width:{size:CW,type:WidthType.DXA},columnWidths:[CW],rows:[
+            new TableRow({children:[new TableCell({borders:bds,width:{size:CW,type:WidthType.DXA},shading:{fill:alertBg,type:ShadingType.CLEAR},margins:{top:80,bottom:80,left:120,right:120},children:[new Paragraph({children:[new TextRun({text:alertTxt,bold:true,size:20,font:'Arial',color:d.alertLevel==='urgent'?'990000':d.alertLevel==='caution'?'7B4F00':'1a1a1a'})]})]})]}),
+          ]}),
+          sp(),
+          sec('■ チェックリスト確認'),
+          new Table({width:{size:CW,type:WidthType.DXA},columnWidths:[500,3500,5026],rows:[
+            chkSub('【仕事・人間関係】'),
+            chkRow(cw.familiar,'仕事への慣れ・困りごとを確認した',''),
+            chkRow(cw.nightShift,'夜勤回数を確認した',cw.nightShift_memo||''),
+            chkRow(cw.renrakuHoukoku,'報連相・出勤状況・利用者との意思疎通を確認した',''),
+            chkRow(cw.supervisor,'上司・同僚との関係・相談しやすい環境かを確認した',''),
+            chkSub('【勉強・資格】'),
+            chkRow(cst.jpStudy,'日本語学習状況・次の試験予定を確認した',cst.jpStudy_memo||''),
+            chkRow(cst.kaigofukushi,'介護福祉士・初任者研修等の資格取得意向を確認した',''),
+            chkSub('【私生活・健康・将来目標】'),
+            chkRow(cli.remittance,'仕送り・貯金・健康状態（腰痛等）を確認した',''),
+            chkRow(cli.holiday_trip,'一時帰国予定を確認した',cli.holiday_trip_memo||''),
+            chkRow(cfu.yearsInJapan,'日本での就労希望年数・将来目標を確認した',cfu.yearsInJapan_memo||''),
+            chkRow(cli.concerns,'困っていること・聞きたいことがないか確認した',''),
+          ]}),
+          sp(),
+          sec('■ 評価スコア（前回比較）'),
+          new Table({width:{size:CW,type:WidthType.DXA},columnWidths:[2000,3000,4026],rows:[
+            new TableRow({children:[hcl('項目',2000),hcl('スコア',3000),hcl('根拠・コメント',4026)]}),
+            scRow('モチベーション',sc2.motivation||0,ps.motivation||0,scc.motivation||''),
+            scRow('職場適応度',sc2.adaptation||0,ps.adaptation||0,scc.adaptation||''),
+            scRow('精神的安定度',sc2.stability||0,ps.stability||0,scc.stability||''),
+            scRow('日本語力',sc2.japanese_skill||0,ps.japanese_skill||0,scc.japanese_skill||''),
+          ]}),
+          sp(),
+          sec('■ 面談内容'),
+          new Table({width:{size:CW,type:WidthType.DXA},columnWidths:[2000,7026],rows:[
+            new TableRow({children:[hcl('仕事・職場',2000),cl(d.workStatus||'',{width:7026,size:17})]}),
+            new TableRow({children:[hcl('人間関係',2000),cl(d.humanRelations||'',{width:7026,size:17})]}),
+            new TableRow({children:[hcl('勉強・資格',2000),cl(d.studyStatus||'',{width:7026,size:17})]}),
+            new TableRow({children:[hcl('私生活・健康',2000),cl(d.lifeStatus||'',{width:7026,size:17})]}),
+            new TableRow({children:[hcl('将来目標',2000),cl(d.futureGoal||'',{width:7026,size:17})]}),
+            new TableRow({children:[hcl('懸念事項',2000),cl(d.concerns||'特になし',{width:7026,size:17,bg:d.concerns&&d.concerns!=='特になし'?'FFF3CD':WHITE})]}),
+          ]}),
+          sp(),
+          sec('■ 総合所見'),
+          new Table({width:{size:CW,type:WidthType.DXA},columnWidths:[CW],rows:[
+            new TableRow({children:[new TableCell({borders:bds,width:{size:CW,type:WidthType.DXA},margins:{top:80,bottom:80,left:120,right:120},children:[new Paragraph({children:[new TextRun({text:d.overallComment||'',size:18,font:'Arial'})]})]})]}),
+          ]}),
+        ]
+      }]
+    });
+    const blob=await Packer.toBlob(doc2);
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=`定期面談報告書_${d.name||'unknown'}_${d.date||'unknown'}.docx`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    if(btn){ btn.textContent='✅ ダウンロード完了'; btn.disabled=false; setTimeout(()=>{ btn.textContent='📄 Word報告書を生成・ダウンロード'; },3000); }
+  }catch(e){
+    alert('Word生成エラー:\n'+e.message);
+    if(btn){ btn.textContent='❌ エラー'; btn.disabled=false; setTimeout(()=>{ btn.textContent='📄 Word報告書を生成・ダウンロード'; },3000); }
+  }
+}
+</script>
+</body>
+</html>
