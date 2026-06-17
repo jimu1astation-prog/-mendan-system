@@ -376,6 +376,30 @@ async function estimateTransport() {
   btn.disabled = false;
 }
 
+async function estimateClientTransport(id) {
+  const addr = document.getElementById('caddr-' + id).value.trim();
+  if (!addr) { alert('住所を入力してください'); return; }
+  const box = document.getElementById('cai-box-' + id);
+  box.style.display = 'block';
+  box.className = 'ai-box loading';
+  box.textContent = 'AIが交通費を推定中...';
+
+  try {
+    const p = await callClaudeTransport(addr);
+    box.className = 'ai-box';
+    box.innerHTML =
+      '<strong>' + p.transport + '</strong>　往復 <strong>' + p.round_trip.toLocaleString() + '円</strong> 程度<br>' +
+      '<span style="color:#888;font-size:12px">' + p.memo + '</span>' +
+      (p.needs_hotel ? '<br><span style="color:#b06000;font-size:12px">⚠ 日帰り困難な場合があります。宿泊費を入力してください。</span>' : '');
+
+    document.getElementById('ctravel-' + id).value = p.round_trip;
+    updateClient(id);
+  } catch(e) {
+    box.className = 'ai-box error';
+    box.textContent = '推定に失敗しました。手動で金額を入力してください。';
+  }
+}
+
 function update() {
   const workers = parseInt(document.getElementById('workers').value);
   const years   = parseInt(document.getElementById('years').value);
@@ -578,16 +602,48 @@ function renderClients() {
         <input type="number" id="cmonthly-${c.id}" value="26000" step="1000" oninput="updateClient(${c.id})">
         <span class="unit">円</span>
       </div>
+
+      <p class="sub" style="margin-bottom:6px">行政書士・ビザ費用・事務人件費（年1回×契約年数、1名あたり）</p>
       <div class="row">
-        <label>行政書士・ビザ・事務人件費（年間合計・1名あたり）</label>
-        <input type="number" id="cyearly-${c.id}" value="42000" step="1000" oninput="updateClient(${c.id})">
+        <label>行政書士</label>
+        <input type="number" id="cgyosei-${c.id}" value="6000" step="1000" oninput="updateClient(${c.id})">
         <span class="unit">円/年</span>
       </div>
       <div class="row">
-        <label>定期面談 交通・宿泊・出張手当（1回あたり合計）</label>
+        <label>ビザ費用</label>
+        <input type="number" id="cvisa-${c.id}" value="30000" step="1000" oninput="updateClient(${c.id})">
+        <span class="unit">円/年</span>
+      </div>
+      <div class="row">
+        <label>事務人件費</label>
+        <input type="number" id="cjinken-${c.id}" value="6000" step="1000" oninput="updateClient(${c.id})">
+        <span class="unit">円/年</span>
+      </div>
+
+      <p class="sub" style="margin-bottom:6px">法人の所在地（出張旅費の自動推定・出発地点：大阪市中央区谷町2-2-22）</p>
+      <div class="addr-row">
+        <input type="text" id="caddr-${c.id}" placeholder="例：東京都新宿区西新宿2-8-1">
+        <button class="btn" onclick="estimateClientTransport(${c.id})">AIで推定</button>
+      </div>
+      <div class="ai-box" id="cai-box-${c.id}" style="display:none"></div>
+
+      <p class="sub" style="margin-bottom:6px">定期面談（3ヶ月に1回・出張1回あたりの合計額）</p>
+      <div class="row">
+        <label>交通費（往復）</label>
         <input type="number" id="ctravel-${c.id}" value="0" step="500" oninput="updateClient(${c.id})">
         <span class="unit">円</span>
       </div>
+      <div class="row">
+        <label>宿泊費</label>
+        <input type="number" id="chotel-${c.id}" value="0" step="1000" oninput="updateClient(${c.id})">
+        <span class="unit">円</span>
+      </div>
+      <div class="row">
+        <label>出張手当</label>
+        <input type="number" id="callow-${c.id}" value="0" step="1000" oninput="updateClient(${c.id})">
+        <span class="unit">円</span>
+      </div>
+
       <div class="row">
         <label>営業人件費（1名あたり/月）</label>
         <input type="number" id="ceigyo-${c.id}" value="6853" step="100" oninput="updateClient(${c.id})">
@@ -605,12 +661,21 @@ function renderClients() {
 }
 
 function updateClient(id) {
+  const workers = parseFloat(document.getElementById('cworkers-' + id).value) || 1;
   const monthly = parseFloat(document.getElementById('cmonthly-' + id).value) || 0;
-  const yearly  = parseFloat(document.getElementById('cyearly-' + id).value)  || 0;
-  const travel  = parseFloat(document.getElementById('ctravel-' + id).value)  || 0;
+  const gyosei  = parseFloat(document.getElementById('cgyosei-' + id).value)  || 0;
+  const visa    = parseFloat(document.getElementById('cvisa-' + id).value)    || 0;
+  const jinken  = parseFloat(document.getElementById('cjinken-' + id).value)  || 0;
+  const travel  = parseFloat(document.getElementById('ctravel-' + id).value)  || 0; // 出張1回の合計額
+  const hotel   = parseFloat(document.getElementById('chotel-' + id).value)   || 0;
+  const allow   = parseFloat(document.getElementById('callow-' + id).value)   || 0;
   const eigyo   = parseFloat(document.getElementById('ceigyo-' + id).value)   || 0;
 
-  const monthlyCost = yearly / 12 + travel / 3 + eigyo;
+  const yearly = gyosei + visa + jinken; // 1名あたり年間合計
+  const travelTotal = travel + hotel + allow; // 出張1回の合計額（人数で割る）
+  const travelPerWorker = workers > 0 ? travelTotal / workers : 0;
+
+  const monthlyCost = yearly / 12 + travelPerWorker / 3 + eigyo;
   const monthlyProfit = monthly - monthlyCost;
   const margin = monthly > 0 ? monthlyProfit / monthly * 100 : 0;
 
