@@ -238,11 +238,13 @@ hr { border: none; border-top: 1px solid #f0f0f0; margin: 1rem 0; }
         <div class="cl">① イニシャル損益（初回のみ・全員分）</div>
         <div class="cv" id="r_initial_profit">-</div>
         <div class="cs" id="r_initial_margin_sub">初回売上 − 初回経費／粗利率 -</div>
+        <div style="font-size:11px;color:#bbb;margin-top:8px;line-height:1.7;border-top:1px solid #f0d0d0;padding-top:8px" id="i_formula">-</div>
       </div>
       <div class="mcard accent-blue">
         <div class="cl">② ランニング月次損益（全員分・1ヶ月あたり）</div>
         <div class="cv" id="r_running_monthly">-</div>
         <div class="cs" id="r_running_monthly_sub">月額売上 − 月割り経費／粗利率 -</div>
+        <div style="font-size:11px;color:#bbb;margin-top:8px;line-height:1.7;border-top:1px solid #d0d8f0;padding-top:8px" id="r_formula">-</div>
       </div>
     </div>
 
@@ -495,6 +497,32 @@ function update() {
   rmEl.textContent = pct(running_margin);
   rmEl.className = 'cv ' + (running_margin >= 0 ? 'pos' : 'neg');
 
+  // --- 計算式根拠表示 ---
+  const iFormulaEl = document.getElementById('i_formula');
+  if (iFormulaEl) {
+    iFormulaEl.innerHTML =
+      '【計算根拠・全員分（' + workers + '名）】<br>' +
+      '売上　(事務手数料' + fmt(p_jimu) + ' + 紹介料' + fmt(p_shokai) + ') × ' + workers + '名 = ' + fmt(initial_rev) + '<br>' +
+      '経費　(行政書士' + fmt(i_gyosei) + ' + ビザ' + fmt(i_visa) + ' + 送り出し' + fmt(i_sendout) + ' + 事務人件費' + fmt(i_jinken) + ') × ' + workers + '名 = ' + fmt(initial_cost_per_worker) + '<br>' +
+      '　　+ 配属同行費（出張1回合計 ' + fmt(initial_travel_total) + '、人数で割らず1回分） = ' + fmt(initial_cost_per_worker) + ' + ' + fmt(initial_travel_total) + ' = ' + fmt(initial_cost) + '<br>' +
+      '─────────<br>' +
+      '損益　売上 ' + fmt(initial_rev) + ' − 経費 ' + fmt(initial_cost) + ' = ' + fmtSigned(initial_profit);
+  }
+
+  const rFormulaEl = document.getElementById('r_formula');
+  if (rFormulaEl) {
+    const yearlyCostAll = (r_gyosei + r_visa + r_jinken) * workers;
+    rFormulaEl.innerHTML =
+      '【計算根拠・全員分（' + workers + '名）・1ヶ月あたり】<br>' +
+      '売上　支援費用' + fmt(p_monthly) + ' × ' + workers + '名 = ' + fmt(running_monthly_rev) + '<br>' +
+      '経費①　(行政書士' + fmt(r_gyosei) + ' + ビザ' + fmt(r_visa) + ' + 事務人件費' + fmt(r_jinken) + ') × ' + workers + '名 = ' + fmt(yearlyCostAll) + ' ÷ 12ヶ月 = ' + fmt(yearlyCostAll/12) + '<br>' +
+      '経費②　定期面談（出張1回合計 ' + fmt(running_travel_per_visit_total) + '、人数で割らず1回分） ÷ 3ヶ月 = ' + fmt(running_travel_per_visit_total/3) + '<br>' +
+      '経費③　営業人件費 ' + fmt(r_eigyo) + ' × ' + workers + '名 = ' + fmt(r_eigyo*workers) + '<br>' +
+      '─────────<br>' +
+      '月次コスト　' + fmt(yearlyCostAll/12) + ' + ' + fmt(running_travel_per_visit_total/3) + ' + ' + fmt(r_eigyo*workers) + ' = ' + fmt(running_monthly_cost) + '<br>' +
+      '損益　売上 ' + fmt(running_monthly_rev) + ' − コスト ' + fmt(running_monthly_cost) + ' = ' + fmtSigned(running_monthly_profit);
+  }
+
   document.getElementById('r_rev').textContent    = fmt(revenue);
   document.getElementById('r_cost').textContent   = fmt(total_cost);
   document.getElementById('r_profit').textContent = fmt(profit);
@@ -653,6 +681,7 @@ function renderClients() {
         <div class="cl">月次損益（1名あたり）</div>
         <div class="cv" id="cresult-${c.id}">-</div>
         <div class="cs" id="cresult-sub-${c.id}">-</div>
+        <div style="font-size:11px;color:#bbb;margin-top:8px;line-height:1.7;border-top:1px solid #eee;padding-top:8px" id="cformula-${c.id}">-</div>
       </div>
     `;
     list.appendChild(div);
@@ -698,6 +727,18 @@ function updateClient(id) {
     statusEl.textContent = '健全';
     statusEl.className = 'badge-status badge-ok';
     subEl.textContent = '粗利率 ' + pct(margin) + '。問題ありません。';
+  }
+
+  const formulaEl = document.getElementById('cformula-' + id);
+  if (formulaEl) {
+    formulaEl.innerHTML =
+      '【計算根拠】<br>' +
+      '行政書士・ビザ・事務人件費　年間 ' + fmt(yearly) + '（1名あたり） ÷ 12ヶ月 = ' + fmt(yearly/12) + '/月<br>' +
+      '定期面談費　出張1回合計 ' + fmt(travelTotal) + ' ÷ ' + workers + '名 = ' + fmt(travelPerWorker) + '/名・回 ÷ 3ヶ月 = ' + fmt(travelPerWorker/3) + '/月<br>' +
+      '営業人件費　' + fmt(eigyo) + '/月（1名あたり）<br>' +
+      '─────────<br>' +
+      '1名あたり月次コスト　' + fmt(yearly/12) + ' + ' + fmt(travelPerWorker/3) + ' + ' + fmt(eigyo) + ' = ' + fmt(monthlyCost) + '<br>' +
+      '1名あたり月次損益　支援費用 ' + fmt(monthly) + ' − コスト ' + fmt(monthlyCost) + ' = ' + fmtSigned(monthlyProfit);
   }
 }
 
