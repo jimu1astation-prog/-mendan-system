@@ -229,22 +229,35 @@ hr { border: none; border-top: 1px solid #f0f0f0; margin: 1rem 0; }
 
     <div class="grid2">
       <div class="mcard accent-red">
-        <div class="cl">① イニシャル損益（初回のみ）</div>
+        <div class="cl">① イニシャル損益（初回のみ・全員分）</div>
         <div class="cv" id="r_initial_profit">-</div>
-        <div class="cs">初回売上 − 初回経費</div>
+        <div class="cs" id="r_initial_margin_sub">初回売上 − 初回経費／粗利率 -</div>
       </div>
       <div class="mcard accent-blue">
-        <div class="cl">② ランニング月次損益（1ヶ月あたり）</div>
+        <div class="cl">② ランニング月次損益（全員分・1ヶ月あたり）</div>
         <div class="cv" id="r_running_monthly">-</div>
-        <div class="cs">月額売上 − 月割り経費</div>
+        <div class="cs" id="r_running_monthly_sub">月額売上 − 月割り経費／粗利率 -</div>
+      </div>
+    </div>
+
+    <div class="grid2" style="margin-top:-4px">
+      <div class="mcard" style="background:#fff;border:1px solid #eee">
+        <div class="cl">イニシャル 粗利率<span style="font-weight:400">（本業ではない＝参考値）</span></div>
+        <div class="cv" id="r_initial_margin">-</div>
+        <div class="cs">初回限定。事業の本筋ではないため、これだけで判断しないこと</div>
+      </div>
+      <div class="mcard" style="background:#fff;border:2px solid #4a6cf7">
+        <div class="cl" style="color:#4a6cf7;font-weight:700">★ランニング 粗利率（本業の収益性）</div>
+        <div class="cv" id="r_running_margin">-</div>
+        <div class="cs">継続課金部分。これが事業の本当の利益率です</div>
       </div>
     </div>
 
     <div class="grid4">
       <div class="mcard"><div class="cl">総売上（契約期間合計）</div><div class="cv" id="r_rev">-</div></div>
       <div class="mcard"><div class="cl">総経費（契約期間合計）</div><div class="cv" id="r_cost">-</div></div>
-      <div class="mcard"><div class="cl">最終粗利</div><div class="cv" id="r_profit">-</div></div>
-      <div class="mcard"><div class="cl">粗利率</div><div class="cv" id="r_margin">-</div></div>
+      <div class="mcard"><div class="cl">最終粗利（イニシャル＋ランニング合計）</div><div class="cv" id="r_profit">-</div></div>
+      <div class="mcard"><div class="cl">全体 粗利率</div><div class="cv" id="r_margin">-</div></div>
     </div>
 
     <table class="bk">
@@ -268,7 +281,7 @@ hr { border: none; border-top: 1px solid #f0f0f0; margin: 1rem 0; }
     <hr>
 
     <div id="verdict" class="verdict ok">
-      <div class="vt" id="v_title">判定</div>
+      <div class="vt" id="v_title">判定（ランニング基準）</div>
       <div class="vv" id="v_val">-</div>
       <div class="vs" id="v_sub">-</div>
     </div>
@@ -406,6 +419,7 @@ function update() {
   const running_monthly_rev  = p_monthly * workers;
   const running_monthly_cost = ((r_gyosei + r_visa + r_jinken) * workers) / 12 + ((r_travel + r_hotel + r_allow) * workers) / 3 + r_eigyo * workers;
   const running_monthly_profit = running_monthly_rev - running_monthly_cost;
+  const running_monthly_profit_per_worker = workers > 0 ? running_monthly_profit / workers : 0;
 
   // --- 全体 ---
   const revenue = initial_rev + running_rev_total;
@@ -413,14 +427,28 @@ function update() {
   const profit = revenue - total_cost;
   const margin = revenue > 0 ? profit / revenue * 100 : 0;
 
+  const initial_margin = initial_rev > 0 ? initial_profit / initial_rev * 100 : 0;
+  const running_margin = running_monthly_rev > 0 ? running_monthly_profit / running_monthly_rev * 100 : 0;
+
   // --- 表示: サマリーカード ---
   const ip = document.getElementById('r_initial_profit');
   ip.textContent = fmtSigned(initial_profit);
   ip.className = 'cv ' + (initial_profit >= 0 ? 'pos' : 'neg');
+  document.getElementById('r_initial_margin_sub').textContent = '初回売上 − 初回経費／粗利率 ' + pct(initial_margin);
 
   const rm = document.getElementById('r_running_monthly');
   rm.textContent = fmtSigned(running_monthly_profit);
   rm.className = 'cv ' + (running_monthly_profit >= 0 ? 'pos' : 'neg');
+  document.getElementById('r_running_monthly_sub').textContent =
+    '月額売上 − 月割り経費／粗利率 ' + pct(running_margin) + '／1名あたり ' + fmtSigned(running_monthly_profit_per_worker);
+
+  const imEl = document.getElementById('r_initial_margin');
+  imEl.textContent = pct(initial_margin);
+  imEl.className = 'cv ' + (initial_margin >= 0 ? 'pos' : 'neg');
+
+  const rmEl = document.getElementById('r_running_margin');
+  rmEl.textContent = pct(running_margin);
+  rmEl.className = 'cv ' + (running_margin >= 0 ? 'pos' : 'neg');
 
   document.getElementById('r_rev').textContent    = fmt(revenue);
   document.getElementById('r_cost').textContent   = fmt(total_cost);
@@ -449,26 +477,26 @@ function update() {
   const vv = document.getElementById('v_val');
   const vs = document.getElementById('v_sub');
   vd.className = 'verdict';
-  if (margin >= 30) {
+  if (running_margin >= 30) {
     vd.classList.add('ok');
-    vt.textContent = '✓ 利益確保できています';
-    vv.textContent = fmt(profit) + '（粗利率 ' + pct(margin) + '）';
-    vs.textContent = '割引してもこの粗利率を維持できるか確認してください';
-  } else if (margin >= 10) {
+    vt.textContent = '✓ ランニングで利益確保できています';
+    vv.textContent = fmtSigned(running_monthly_profit) + '/月（ランニング粗利率 ' + pct(running_margin) + '）';
+    vs.textContent = '本業の収益性は健全です。割引してもこの粗利率を維持できるか確認してください';
+  } else if (running_margin >= 10) {
     vd.classList.add('warn');
-    vt.textContent = '⚠ 利益は出ていますが薄めです';
-    vv.textContent = fmt(profit) + '（粗利率 ' + pct(margin) + '）';
-    vs.textContent = 'これ以上の値引きは慎重に判断してください';
-  } else if (profit > 0) {
+    vt.textContent = '⚠ ランニングの利益は出ていますが薄めです';
+    vv.textContent = fmtSigned(running_monthly_profit) + '/月（ランニング粗利率 ' + pct(running_margin) + '）';
+    vs.textContent = 'イニシャルの儲けに頼らず、ランニング単体で十分な利益を出せるか見直してください';
+  } else if (running_monthly_profit > 0) {
     vd.classList.add('warn');
-    vt.textContent = '⚠ 利益がほぼありません';
-    vv.textContent = fmt(profit) + '（粗利率 ' + pct(margin) + '）';
-    vs.textContent = '値引きはこれ以上できません';
+    vt.textContent = '⚠ ランニングの利益がほぼありません';
+    vv.textContent = fmtSigned(running_monthly_profit) + '/月（ランニング粗利率 ' + pct(running_margin) + '）';
+    vs.textContent = 'これ以上の値引きはできません。継続契約として収益性が低すぎます';
   } else {
     vd.classList.add('danger');
-    vt.textContent = '✗ 全体で赤字です';
-    vv.textContent = fmt(profit) + '（粗利率 ' + pct(margin) + '）';
-    vs.textContent = '経費が売上を上回っています。値引き不可です。';
+    vt.textContent = '✗ ランニングが毎月赤字です（要注意）';
+    vv.textContent = fmtSigned(running_monthly_profit) + '/月（ランニング粗利率 ' + pct(running_margin) + '）';
+    vs.textContent = 'イニシャルが黒字でも、契約が続くほど損失が積み重なります。単価or経費を見直してください';
   }
 
   // --- 回収期間 ---
