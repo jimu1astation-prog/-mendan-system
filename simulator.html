@@ -125,12 +125,12 @@ hr { border: none; border-top: 1px solid #f0f0f0; margin: 1rem 0; }
       <span class="unit">円</span>
     </div>
     <div class="row">
-      <label>事務手数料 <span class="tag">初回1回</span></label>
+      <label>事務手数料（1名あたり）<span class="tag">初回1回</span></label>
       <input type="number" id="p_jimu" value="100000" step="10000" oninput="update()">
       <span class="unit">円</span>
     </div>
     <div class="row">
-      <label>紹介料 <span class="tag">初回1回</span></label>
+      <label>紹介料（1名あたり）<span class="tag">初回1回</span></label>
       <input type="number" id="p_shokai" value="200000" step="10000" oninput="update()">
       <span class="unit">円</span>
     </div>
@@ -148,8 +148,8 @@ hr { border: none; border-top: 1px solid #f0f0f0; margin: 1rem 0; }
     <table class="bk">
       <tr><td colspan="2" class="muted" style="font-size:11px;padding-bottom:3px">── 売上内訳 ──</td></tr>
       <tr><td class="muted">支援費用（月額 × 人数 × 期間）</td><td id="b_monthly">-</td></tr>
-      <tr><td class="muted">事務手数料 <span class="tag">初回</span></td><td id="b_jimu">-</td></tr>
-      <tr><td class="muted">紹介料 <span class="tag">初回</span></td><td id="b_shokai">-</td></tr>
+      <tr><td class="muted">事務手数料（1名あたり × 人数）<span class="tag">初回</span></td><td id="b_jimu">-</td></tr>
+      <tr><td class="muted">紹介料（1名あたり × 人数）<span class="tag">初回</span></td><td id="b_shokai">-</td></tr>
       <tr><td colspan="2" class="muted" style="font-size:11px;padding-top:10px;padding-bottom:3px">── 経費内訳 ──</td></tr>
       <tr><td class="muted">行政書士（年1回 × 人数 × 年数）</td><td id="b_gyosei">-</td></tr>
       <tr><td class="muted">ビザ費用（年1回 × 人数 × 年数）</td><td id="b_visa">-</td></tr>
@@ -172,8 +172,8 @@ hr { border: none; border-top: 1px solid #f0f0f0; margin: 1rem 0; }
     <p style="font-size:12px;color:#aaa;margin-bottom:10px">割引限界ライン（他を定価にしたとき、利益ゼロになる最低額）</p>
     <div class="grid3">
       <div class="mcard"><div class="cl">支援費用 最低月額</div><div class="cv" id="min_m">-</div><div class="cs">これ以下は赤字</div></div>
-      <div class="mcard"><div class="cl">事務手数料 最低額</div><div class="cv" id="min_j">-</div><div class="cs">これ以下は赤字</div></div>
-      <div class="mcard"><div class="cl">紹介料 最低額</div><div class="cv" id="min_s">-</div><div class="cs">これ以下は赤字</div></div>
+      <div class="mcard"><div class="cl">事務手数料 最低額（1名あたり）</div><div class="cv" id="min_j">-</div><div class="cs">これ以下は赤字</div></div>
+      <div class="mcard"><div class="cl">紹介料 最低額（1名あたり）</div><div class="cv" id="min_s">-</div><div class="cs">これ以下は赤字</div></div>
     </div>
   </div>
 
@@ -249,7 +249,9 @@ function update() {
   const p_shokai = parseFloat(document.getElementById('p_shokai').value) || 0;
 
   const rev_m   = p_m * workers * months;
-  const revenue = rev_m + p_jimu + p_shokai;
+  const rev_jimu_total   = p_jimu * workers;
+  const rev_shokai_total = p_shokai * workers;
+  const revenue = rev_m + rev_jimu_total + rev_shokai_total;
 
   const c_gyosei  = gyosei  * workers * years;
   const c_visa    = visa    * workers * years;
@@ -268,8 +270,8 @@ function update() {
   document.getElementById('r_margin').textContent = pct(margin);
 
   document.getElementById('b_monthly').textContent = fmt(rev_m);
-  document.getElementById('b_jimu').textContent    = fmt(p_jimu);
-  document.getElementById('b_shokai').textContent  = fmt(p_shokai);
+  document.getElementById('b_jimu').textContent    = fmt(rev_jimu_total);
+  document.getElementById('b_shokai').textContent  = fmt(rev_shokai_total);
   document.getElementById('b_gyosei').textContent  = '- ' + fmt(c_gyosei);
   document.getElementById('b_visa').textContent    = '- ' + fmt(c_visa);
   document.getElementById('b_travel').textContent  = '- ' + fmt(c_travel);
@@ -305,14 +307,14 @@ function update() {
   }
 
   const def_m   = workers >= 6 ? 21000 : 26000;
-  const min_m_v = workers * months > 0 ? Math.ceil((total_cost - p_jimu - p_shokai) / (workers * months)) : 0;
+  const min_m_v = workers * months > 0 ? Math.ceil((total_cost - rev_jimu_total - rev_shokai_total) / (workers * months)) : 0;
   document.getElementById('min_m').textContent = min_m_v > 0 ? fmt(min_m_v) + '/月' : '0円（免除可）';
 
-  const min_j_v = Math.ceil(total_cost - def_m * workers * months - p_shokai);
-  document.getElementById('min_j').textContent = min_j_v > 0 ? fmt(min_j_v) : '0円（免除可）';
+  const min_j_v = workers > 0 ? Math.ceil((total_cost - def_m * workers * months - rev_shokai_total) / workers) : 0;
+  document.getElementById('min_j').textContent = min_j_v > 0 ? fmt(min_j_v) + '/名' : '0円（免除可）';
 
-  const min_s_v = Math.ceil(total_cost - def_m * workers * months - p_jimu);
-  document.getElementById('min_s').textContent = min_s_v > 0 ? fmt(min_s_v) : '0円（免除可）';
+  const min_s_v = workers > 0 ? Math.ceil((total_cost - def_m * workers * months - rev_jimu_total) / workers) : 0;
+  document.getElementById('min_s').textContent = min_s_v > 0 ? fmt(min_s_v) + '/名' : '0円（免除可）';
 }
 
 update();
