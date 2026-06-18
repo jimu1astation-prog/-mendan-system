@@ -82,6 +82,10 @@ hr { border: none; border-top: 1px solid #f0f0f0; margin: 1rem 0; }
 #staffBadge { display: none; position: fixed; top: 14px; right: 14px; background: #fff; border: 1px solid #ddd; border-radius: 20px; padding: 6px 14px; font-size: 12px; color: #444; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.06); z-index: 100; }
 #staffBadge:hover { background: #f5f5f5; }
 #submitResult input[readonly] { background: #fff; }
+input.locked { background: #ececec !important; color: #888 !important; border-color: #ddd !important; cursor: not-allowed; }
+input.locked:focus { outline: none; }
+input.need-input { background: #fff9e6 !important; border: 1.5px solid #f0b429 !important; }
+input.need-input::placeholder { color: #b8860b; }
 </style>
 </head>
 <body>
@@ -117,7 +121,7 @@ hr { border: none; border-top: 1px solid #f0f0f0; margin: 1rem 0; }
     <div class="sec-title">基本情報</div>
     <div class="row">
       <label>法人名</label>
-      <input type="text" id="clientName" placeholder="例：株式会社サンプル">
+      <input type="text" id="clientName" class="need-input" placeholder="例：株式会社サンプル">
     </div>
     <div class="row">
       <label>外国人労働者数（名）</label>
@@ -135,7 +139,7 @@ hr { border: none; border-top: 1px solid #f0f0f0; margin: 1rem 0; }
     <div class="sec-title">法人の所在地（出張旅費の自動推定）</div>
     <p style="font-size:12px;color:#aaa;margin-bottom:10px">出発地点：大阪市中央区谷町2-2-22（固定）</p>
     <div class="addr-row">
-      <input type="text" id="address" placeholder="例：東京都新宿区西新宿2-8-1">
+      <input type="text" id="address" class="need-input" placeholder="例：東京都新宿区西新宿2-8-1">
       <button class="btn" id="est-btn" onclick="estimateTransport()">AIで推定</button>
     </div>
     <div class="ai-box" id="ai-box" style="display:none"></div>
@@ -162,12 +166,12 @@ hr { border: none; border-top: 1px solid #f0f0f0; margin: 1rem 0; }
       <div class="sec-title">経費</div>
       <div class="row">
         <label>行政書士（初回）</label>
-        <input type="number" id="i_gyosei" value="6000" step="1000" oninput="update()">
+        <input type="number" id="i_gyosei" class="locked" value="6000" step="1000" oninput="update()" readonly>
         <span class="unit">円</span>
       </div>
       <div class="row">
         <label>ビザ費用（初回）</label>
-        <input type="number" id="i_visa" value="6000" step="1000" oninput="update()">
+        <input type="number" id="i_visa" class="locked" value="6000" step="1000" oninput="update()" readonly>
         <span class="unit">円</span>
       </div>
       <div class="row">
@@ -177,7 +181,7 @@ hr { border: none; border-top: 1px solid #f0f0f0; margin: 1rem 0; }
       </div>
       <div class="row">
         <label>事務人件費（初回）</label>
-        <input type="number" id="i_jimu_jinken" value="10000" step="1000" oninput="update()">
+        <input type="number" id="i_jimu_jinken" class="locked" value="10000" step="1000" oninput="update()" readonly>
         <span class="unit">円</span>
       </div>
       <div class="row">
@@ -211,17 +215,17 @@ hr { border: none; border-top: 1px solid #f0f0f0; margin: 1rem 0; }
       <div class="sec-title">経費（年1回×契約年数）</div>
       <div class="row">
         <label>行政書士</label>
-        <input type="number" id="r_gyosei" value="6000" step="1000" oninput="update()">
+        <input type="number" id="r_gyosei" class="locked" value="6000" step="1000" oninput="update()" readonly>
         <span class="unit">円</span>
       </div>
       <div class="row">
         <label>ビザ費用</label>
-        <input type="number" id="r_visa" value="30000" step="1000" oninput="update()">
+        <input type="number" id="r_visa" class="locked" value="30000" step="1000" oninput="update()" readonly>
         <span class="unit">円</span>
       </div>
       <div class="row">
         <label>事務人件費</label>
-        <input type="number" id="r_jimu_jinken" value="6000" step="1000" oninput="update()">
+        <input type="number" id="r_jimu_jinken" class="locked" value="6000" step="1000" oninput="update()" readonly>
         <span class="unit">円</span>
       </div>
 
@@ -245,7 +249,7 @@ hr { border: none; border-top: 1px solid #f0f0f0; margin: 1rem 0; }
       <div class="sec-title">経費（毎月）</div>
       <div class="row">
         <label>営業人件費（1名あたり/月）</label>
-        <input type="number" id="r_eigyo_jinken" value="6853" step="100" oninput="update()">
+        <input type="number" id="r_eigyo_jinken" class="locked" value="6853" step="100" oninput="update()" readonly>
         <span class="unit">円</span>
       </div>
     </div>
