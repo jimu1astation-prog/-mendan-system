@@ -11,6 +11,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; b
 h1 { font-size: 19px; font-weight: 600; margin-bottom: 0.3rem; color: #111; }
 .subtitle { font-size: 13px; color: #888; margin-bottom: 1.5rem; }
 .card { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; }
+.card-title { font-size: 12px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.75rem; }
 .row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
 .row:last-child { border-bottom: none; }
 .row .lbl { color: #888; }
@@ -27,6 +28,19 @@ h1 { font-size: 19px; font-weight: 600; margin-bottom: 0.3rem; color: #111; }
 .msg-info { background: #f0f4ff; color: #334; border: 1px solid #c7d3f5; }
 .loading { color: #999; font-size: 14px; text-align: center; padding: 2rem 0; }
 .footer-note { font-size: 11px; color: #bbb; margin-top: 2rem; text-align: center; }
+.grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 0.5rem; }
+.mcard { background: #f8f8f8; border-radius: 8px; padding: 0.85rem; }
+.mcard.accent-red { background: #fff5f5; }
+.mcard.accent-blue { background: #f3f8ff; }
+.mcard .cl { font-size: 11px; color: #999; margin-bottom: 4px; }
+.mcard .cv { font-size: 17px; font-weight: 700; color: #111; }
+.mcard .cv.neg { color: #c0392b; }
+.mcard .cv.pos { color: #1a7a3a; }
+.mcard .cs { font-size: 11px; color: #aaa; margin-top: 2px; }
+.sub-title { font-size: 11px; color: #aaa; margin: 14px 0 4px; padding-top: 8px; border-top: 1px dashed #eee; }
+.sub-title:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+.breakdown-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 13px; color: #444; }
+.breakdown-row .v { white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -54,6 +68,43 @@ h1 { font-size: 19px; font-weight: 600; margin-bottom: 0.3rem; color: #111; }
       <div class="row" id="row_approvedAt" style="display:none"><span class="lbl">承認日時</span><span class="val" id="v_approvedAt">-</span></div>
     </div>
 
+    <div class="card" id="detailCard" style="display:none">
+      <div class="card-title">損益の内訳</div>
+      <div class="grid2">
+        <div class="mcard accent-red">
+          <div class="cl">① イニシャル損益（初回のみ）</div>
+          <div class="cv" id="d_initial_profit">-</div>
+          <div class="cs">初回売上 − 初回経費</div>
+        </div>
+        <div class="mcard accent-blue">
+          <div class="cl">② ランニング月次損益（1ヶ月あたり）</div>
+          <div class="cv" id="d_running_monthly">-</div>
+          <div class="cs">月額売上 − 月割り経費</div>
+        </div>
+      </div>
+
+      <div class="sub-title">イニシャル内訳（1名あたり×人数）</div>
+      <div class="breakdown-row"><span>事務手数料</span><span class="v" id="d_jimu">-</span></div>
+      <div class="breakdown-row"><span>紹介料</span><span class="v" id="d_shokai">-</span></div>
+      <div class="breakdown-row"><span>行政書士（初回）</span><span class="v" id="d_i_gyosei">-</span></div>
+      <div class="breakdown-row"><span>ビザ費用（初回）</span><span class="v" id="d_i_visa">-</span></div>
+      <div class="breakdown-row"><span>送り出し機関紹介料</span><span class="v" id="d_i_sendout">-</span></div>
+      <div class="breakdown-row"><span>事務人件費（初回）</span><span class="v" id="d_i_jinken">-</span></div>
+      <div class="breakdown-row"><span>配属同行 交通・宿泊・出張手当</span><span class="v" id="d_i_travel">-</span></div>
+
+      <div class="sub-title">ランニング内訳（契約期間合計）</div>
+      <div class="breakdown-row"><span>支援費用（月額×人数×期間）</span><span class="v" id="d_monthly">-</span></div>
+      <div class="breakdown-row"><span>行政書士（年1回×<span id="d_lbl_years1">-</span>回）</span><span class="v" id="d_r_gyosei">-</span></div>
+      <div class="breakdown-row"><span>ビザ費用（年1回×<span id="d_lbl_years2">-</span>回）</span><span class="v" id="d_r_visa">-</span></div>
+      <div class="breakdown-row"><span>事務人件費（年1回×<span id="d_lbl_years3">-</span>回）</span><span class="v" id="d_r_jinken">-</span></div>
+      <div class="breakdown-row"><span>定期面談 交通・宿泊・出張手当（<span id="d_lbl_visits">-</span>回）</span><span class="v" id="d_r_travel">-</span></div>
+      <div class="breakdown-row"><span>営業人件費（月額×人数×<span id="d_lbl_months">-</span>ヶ月）</span><span class="v" id="d_r_eigyo">-</span></div>
+
+      <div class="sub-title">主要単価（1名あたり）</div>
+      <div class="breakdown-row"><span>支援費用（月額）</span><span class="v" id="d_unit_monthly">-</span></div>
+      <div class="breakdown-row"><span>営業人件費（月額）</span><span class="v" id="d_unit_eigyo">-</span></div>
+    </div>
+
     <div class="card">
       <button class="btn" id="approveBtn" onclick="approve()">承認する</button>
       <div id="msgBox"></div>
@@ -73,6 +124,12 @@ function fmt(n) {
   if (isNaN(v)) return n;
   return Math.round(v).toLocaleString('ja-JP') + '円';
 }
+function fmtSigned(n) {
+  const v = Number(n);
+  if (isNaN(v)) return n;
+  const r = Math.round(v);
+  return (r >= 0 ? '+' : '') + r.toLocaleString('ja-JP') + '円';
+}
 function pct(n) {
   const v = Number(n);
   if (isNaN(v)) return n;
@@ -83,6 +140,10 @@ function fmtDate(d) {
   const dt = new Date(d);
   if (isNaN(dt.getTime())) return String(d);
   return dt.toLocaleString('ja-JP');
+}
+function num(v) {
+  const n = parseFloat(v);
+  return isNaN(n) ? 0 : n;
 }
 
 function getApplicationId() {
@@ -124,6 +185,85 @@ function showError(message) {
   document.getElementById('errorMsg').textContent = message;
 }
 
+function renderBreakdown(data) {
+  const detail = data.detail;
+  if (!detail || typeof detail !== 'object') return; // 古い申請データには詳細がない場合がある
+
+  const workers = parseInt(detail.workers) || parseInt(data.workers) || 0;
+  const years   = parseInt(detail.years)   || parseInt(data.years)   || 0;
+  if (!workers || !years) return;
+  const months = years * 12;
+  const visits = years * 4;
+
+  const p_jimu    = num(detail.p_jimu);
+  const p_shokai  = num(detail.p_shokai);
+  const i_gyosei  = num(detail.i_gyosei);
+  const i_visa    = num(detail.i_visa);
+  const i_sendout = num(detail.i_sendout);
+  const i_jinken  = num(detail.i_jimu_jinken);
+  const i_travel  = num(detail.i_travel);
+  const i_hotel   = num(detail.i_hotel);
+  const i_allow   = num(detail.i_allowance);
+
+  const p_monthly = num(detail.p_monthly);
+  const r_gyosei  = num(detail.r_gyosei);
+  const r_visa    = num(detail.r_visa);
+  const r_jinken  = num(detail.r_jimu_jinken);
+  const r_travel  = num(detail.r_travel);
+  const r_hotel   = num(detail.r_hotel);
+  const r_allow   = num(detail.r_allowance);
+  const r_eigyo   = num(detail.r_eigyo_jinken);
+
+  const initial_rev = (p_jimu + p_shokai) * workers;
+  const initial_travel_total = i_travel + i_hotel + i_allow;
+  const initial_cost = (i_gyosei + i_visa + i_sendout + i_jinken) * workers + initial_travel_total;
+  const initial_profit = initial_rev - initial_cost;
+
+  const running_rev_total = p_monthly * workers * months;
+  const running_yearly_cost_total = (r_gyosei + r_visa + r_jinken) * workers * years;
+  const running_visit_total = r_travel + r_hotel + r_allow;
+  const running_visit_cost_total = running_visit_total * visits;
+  const running_monthly_eigyo_total = r_eigyo * workers * months;
+
+  const running_monthly_rev = p_monthly * workers;
+  const running_monthly_cost = ((r_gyosei + r_visa + r_jinken) * workers) / 12 + running_visit_total / 3 + r_eigyo * workers;
+  const running_monthly_profit = running_monthly_rev - running_monthly_cost;
+
+  document.getElementById('detailCard').style.display = 'block';
+
+  const ip = document.getElementById('d_initial_profit');
+  ip.textContent = fmtSigned(initial_profit);
+  ip.className = 'cv ' + (initial_profit >= 0 ? 'pos' : 'neg');
+
+  const rm = document.getElementById('d_running_monthly');
+  rm.textContent = fmtSigned(running_monthly_profit);
+  rm.className = 'cv ' + (running_monthly_profit >= 0 ? 'pos' : 'neg');
+
+  document.getElementById('d_jimu').textContent      = fmt(p_jimu * workers);
+  document.getElementById('d_shokai').textContent    = fmt(p_shokai * workers);
+  document.getElementById('d_i_gyosei').textContent  = '- ' + fmt(i_gyosei * workers);
+  document.getElementById('d_i_visa').textContent    = '- ' + fmt(i_visa * workers);
+  document.getElementById('d_i_sendout').textContent = '- ' + fmt(i_sendout * workers);
+  document.getElementById('d_i_jinken').textContent  = '- ' + fmt(i_jinken * workers);
+  document.getElementById('d_i_travel').textContent  = '- ' + fmt(initial_travel_total);
+
+  document.getElementById('d_lbl_years1').textContent = years;
+  document.getElementById('d_lbl_years2').textContent = years;
+  document.getElementById('d_lbl_years3').textContent = years;
+  document.getElementById('d_lbl_visits').textContent = visits;
+  document.getElementById('d_lbl_months').textContent = months;
+
+  document.getElementById('d_monthly').textContent  = fmt(running_rev_total);
+  document.getElementById('d_r_gyosei').textContent = '- ' + fmt(r_gyosei * workers * years);
+  document.getElementById('d_r_visa').textContent   = '- ' + fmt(r_visa * workers * years);
+  document.getElementById('d_r_jinken').textContent = '- ' + fmt(r_jinken * workers * years);
+  document.getElementById('d_r_travel').textContent = '- ' + fmt(running_visit_cost_total);
+  document.getElementById('d_r_eigyo').textContent  = '- ' + fmt(running_monthly_eigyo_total);
+
+  document.getElementById('d_unit_monthly').textContent = fmt(p_monthly) + '/月';
+  document.getElementById('d_unit_eigyo').textContent   = fmt(r_eigyo) + '/月';
+}
+
 function renderApplication(data) {
   document.getElementById('loadingBox').style.display = 'none';
   document.getElementById('contentBox').style.display = 'block';
@@ -138,6 +278,8 @@ function renderApplication(data) {
   document.getElementById('v_profit').textContent = fmt(data.profit);
   document.getElementById('v_margin').textContent = pct(data.margin);
   document.getElementById('v_submittedAt').textContent = fmtDate(data.submittedAt);
+
+  renderBreakdown(data);
 
   const statusEl = document.getElementById('v_status');
   const approveBtn = document.getElementById('approveBtn');
