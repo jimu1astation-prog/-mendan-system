@@ -86,6 +86,7 @@ input.locked { background: #ececec !important; color: #888 !important; border-co
 input.locked:focus { outline: none; }
 input.need-input { background: #fff9e6 !important; border: 1.5px solid #f0b429 !important; }
 input.need-input::placeholder { color: #b8860b; }
+.calc-note { font-size: 11px; color: #2060c0; background: #f3f6ff; border: 1px solid #d8e2fb; border-radius: 6px; padding: 5px 9px; margin: -4px 0 10px 0; }
 </style>
 </head>
 <body>
@@ -185,20 +186,23 @@ input.need-input::placeholder { color: #b8860b; }
         <span class="unit">円</span>
       </div>
       <div class="row">
-        <label>配属同行 交通費（往復）</label>
+        <label>配属同行 交通費（往復）<span class="sub">1回分の全額を入力（自動で人数按分）</span></label>
         <input type="number" id="i_travel" value="0" step="500" oninput="update()">
         <span class="unit">円</span>
       </div>
+      <div class="calc-note" id="i_travel_calc">-</div>
       <div class="row">
-        <label>配属同行 宿泊費</label>
+        <label>配属同行 宿泊費<span class="sub">1回分の全額を入力（自動で人数按分）</span></label>
         <input type="number" id="i_hotel" value="0" step="1000" oninput="update()">
         <span class="unit">円</span>
       </div>
+      <div class="calc-note" id="i_hotel_calc">-</div>
       <div class="row">
-        <label>配属同行 出張手当</label>
+        <label>配属同行 出張手当<span class="sub">1回分の全額を入力（自動で人数按分）</span></label>
         <input type="number" id="i_allowance" value="0" step="1000" oninput="update()">
         <span class="unit">円</span>
       </div>
+      <div class="calc-note" id="i_allowance_calc">-</div>
     </div>
 
     <!-- ランニング -->
@@ -228,23 +232,28 @@ input.need-input::placeholder { color: #b8860b; }
         <input type="number" id="r_jimu_jinken" class="locked" value="6000" step="1000" oninput="update()" readonly>
         <span class="unit">円</span>
       </div>
+      <div class="calc-note" id="r_yearly_calc">-</div>
 
       <div class="sec-title">経費（3ヶ月毎×契約期間）</div>
       <div class="row">
-        <label>定期面談 交通費（往復）</label>
+        <label>定期面談 交通費（往復）<span class="sub">1回分の全額を入力（自動で人数按分）</span></label>
         <input type="number" id="r_travel" value="0" step="500" oninput="update()">
         <span class="unit">円</span>
       </div>
+      <div class="calc-note" id="r_travel_calc">-</div>
       <div class="row">
-        <label>定期面談 宿泊費</label>
+        <label>定期面談 宿泊費<span class="sub">1回分の全額を入力（自動で人数按分）</span></label>
         <input type="number" id="r_hotel" value="0" step="1000" oninput="update()">
         <span class="unit">円</span>
       </div>
+      <div class="calc-note" id="r_hotel_calc">-</div>
       <div class="row">
-        <label>定期面談 出張手当</label>
+        <label>定期面談 出張手当<span class="sub">1回分の全額を入力（自動で人数按分）</span></label>
         <input type="number" id="r_allowance" value="0" step="1000" oninput="update()">
         <span class="unit">円</span>
       </div>
+      <div class="calc-note" id="r_allowance_calc">-</div>
+      <div class="calc-note" id="r_visit_calc">-</div>
 
       <div class="sec-title">経費（毎月）</div>
       <div class="row">
@@ -441,7 +450,8 @@ function update() {
   const i_allow   = parseFloat(document.getElementById('i_allowance').value) || 0;
 
   const initial_rev  = (p_jimu + p_shokai) * workers;
-  const initial_cost = (i_gyosei + i_visa + i_sendout + i_jinken + i_travel + i_hotel + i_allow) * workers;
+  const initial_travel_total = i_travel + i_hotel + i_allow; // 1回分の全額（人数で割らない）
+  const initial_cost = (i_gyosei + i_visa + i_sendout + i_jinken) * workers + initial_travel_total;
   const initial_profit = initial_rev - initial_cost;
 
   // --- ランニング ---
@@ -457,12 +467,13 @@ function update() {
   const running_rev_total   = p_monthly * workers * months;
   const running_yearly_cost_per_visit = (r_gyosei + r_visa + r_jinken) * workers; // 年1回分
   const running_yearly_cost_total = running_yearly_cost_per_visit * years;
-  const running_visit_cost_total  = (r_travel + r_hotel + r_allow) * visits;
+  const running_visit_total = r_travel + r_hotel + r_allow; // 1回分の全額（人数で割らない）
+  const running_visit_cost_total  = running_visit_total * visits;
   const running_monthly_eigyo_total = r_eigyo * workers * months;
   const running_cost_total = running_yearly_cost_total + running_visit_cost_total + running_monthly_eigyo_total;
 
   const running_monthly_rev  = p_monthly * workers;
-  const running_monthly_cost = ((r_gyosei + r_visa + r_jinken) * workers) / 12 + ((r_travel + r_hotel + r_allow) * workers) / 3 + r_eigyo * workers;
+  const running_monthly_cost = ((r_gyosei + r_visa + r_jinken) * workers) / 12 + running_visit_total / 3 + r_eigyo * workers;
   const running_monthly_profit = running_monthly_rev - running_monthly_cost;
 
   // --- 全体 ---
@@ -492,14 +503,37 @@ function update() {
   document.getElementById('b_i_visa').textContent    = '- ' + fmt(i_visa * workers);
   document.getElementById('b_i_sendout').textContent = '- ' + fmt(i_sendout * workers);
   document.getElementById('b_i_jinken').textContent  = '- ' + fmt(i_jinken * workers);
-  document.getElementById('b_i_travel').textContent  = '- ' + fmt((i_travel + i_hotel + i_allow) * workers);
+  document.getElementById('b_i_travel').textContent  = '- ' + fmt(initial_travel_total);
 
   document.getElementById('b_monthly').textContent  = fmt(running_rev_total);
   document.getElementById('b_r_gyosei').textContent = '- ' + fmt(r_gyosei * workers * years);
   document.getElementById('b_r_visa').textContent   = '- ' + fmt(r_visa * workers * years);
   document.getElementById('b_r_jinken').textContent = '- ' + fmt(r_jinken * workers * years);
-  document.getElementById('b_r_travel').textContent = '- ' + fmt((r_travel + r_hotel + r_allow) * visits);
+  document.getElementById('b_r_travel').textContent = '- ' + fmt(running_visit_cost_total);
   document.getElementById('b_r_eigyo').textContent  = '- ' + fmt(running_monthly_eigyo_total);
+
+  // --- 計算式の可視化（1回分全額 ÷ 人数 = 1名あたり） ---
+  function calcNote(id, total) {
+    const el = document.getElementById(id + '_calc');
+    if (!el) return;
+    const perPerson = workers > 0 ? total / workers : 0;
+    el.textContent = fmt(total) + '円 ÷ ' + workers + '名 = ' + fmt(perPerson) + '円/名';
+  }
+  calcNote('i_travel', i_travel);
+  calcNote('i_hotel', i_hotel);
+  calcNote('i_allowance', i_allow);
+  calcNote('r_travel', r_travel);
+  calcNote('r_hotel', r_hotel);
+  calcNote('r_allowance', r_allow);
+
+  const r_yearly_note = document.getElementById('r_yearly_calc');
+  if (r_yearly_note) {
+    r_yearly_note.textContent = fmt(r_gyosei) + ' + ' + fmt(r_visa) + ' + ' + fmt(r_jinken) + ' = ' + fmt(r_gyosei + r_visa + r_jinken) + '円/年（1名あたり・年1回計上）';
+  }
+  const r_visit_note = document.getElementById('r_visit_calc');
+  if (r_visit_note) {
+    r_visit_note.textContent = '合計: ' + fmt(r_travel) + ' + ' + fmt(r_hotel) + ' + ' + fmt(r_allow) + ' = ' + fmt(running_visit_total) + '円/回（1回分全額）';
+  }
 
   // --- 判定 ---
   const vd = document.getElementById('verdict');
@@ -675,16 +709,41 @@ function renderClients() {
         <input type="number" id="cmonthly-${c.id}" value="26000" step="1000" oninput="updateClient(${c.id})">
         <span class="unit">円</span>
       </div>
+      <div class="sec-title" style="margin-top:10px">行政書士・ビザ・事務人件費（年間・1名あたり）</div>
       <div class="row">
-        <label>行政書士・ビザ・事務人件費（年間合計・1名あたり）</label>
-        <input type="number" id="cyearly-${c.id}" value="42000" step="1000" oninput="updateClient(${c.id})">
+        <label>行政書士</label>
+        <input type="number" id="cgyosei-${c.id}" value="6000" step="1000" oninput="updateClient(${c.id})">
         <span class="unit">円/年</span>
       </div>
       <div class="row">
-        <label>定期面談 交通・宿泊・出張手当（1回あたり合計）</label>
-        <input type="number" id="ctravel-${c.id}" value="0" step="500" oninput="updateClient(${c.id})">
+        <label>ビザ費用</label>
+        <input type="number" id="cvisa-${c.id}" value="30000" step="1000" oninput="updateClient(${c.id})">
+        <span class="unit">円/年</span>
+      </div>
+      <div class="row">
+        <label>事務人件費</label>
+        <input type="number" id="cjinken-${c.id}" value="6000" step="1000" oninput="updateClient(${c.id})">
+        <span class="unit">円/年</span>
+      </div>
+      <div class="calc-note" id="cyearly_formula-${c.id}">-</div>
+
+      <div class="sec-title">定期面談 交通・宿泊・出張手当（1回あたり）</div>
+      <div class="row">
+        <label>交通費（往復）</label>
+        <input type="number" id="ctravelt-${c.id}" value="0" step="500" oninput="updateClient(${c.id})">
         <span class="unit">円</span>
       </div>
+      <div class="row">
+        <label>宿泊費</label>
+        <input type="number" id="ctravelh-${c.id}" value="0" step="1000" oninput="updateClient(${c.id})">
+        <span class="unit">円</span>
+      </div>
+      <div class="row">
+        <label>出張手当</label>
+        <input type="number" id="ctravela-${c.id}" value="0" step="1000" oninput="updateClient(${c.id})">
+        <span class="unit">円</span>
+      </div>
+      <div class="calc-note" id="ctravel_formula-${c.id}">-</div>
       <div class="row">
         <label>営業人件費（1名あたり/月）</label>
         <input type="number" id="ceigyo-${c.id}" value="6853" step="100" oninput="updateClient(${c.id})">
@@ -703,9 +762,25 @@ function renderClients() {
 
 function updateClient(id) {
   const monthly = parseFloat(document.getElementById('cmonthly-' + id).value) || 0;
-  const yearly  = parseFloat(document.getElementById('cyearly-' + id).value)  || 0;
-  const travel  = parseFloat(document.getElementById('ctravel-' + id).value)  || 0;
+  const gyosei  = parseFloat(document.getElementById('cgyosei-' + id).value)  || 0;
+  const visa    = parseFloat(document.getElementById('cvisa-' + id).value)    || 0;
+  const jinken  = parseFloat(document.getElementById('cjinken-' + id).value)  || 0;
+  const travelT = parseFloat(document.getElementById('ctravelt-' + id).value) || 0;
+  const travelH = parseFloat(document.getElementById('ctravelh-' + id).value) || 0;
+  const travelA = parseFloat(document.getElementById('ctravela-' + id).value) || 0;
   const eigyo   = parseFloat(document.getElementById('ceigyo-' + id).value)   || 0;
+
+  const yearly = gyosei + visa + jinken;
+  const travel = travelT + travelH + travelA;
+
+  const yearlyFormulaEl = document.getElementById('cyearly_formula-' + id);
+  if (yearlyFormulaEl) {
+    yearlyFormulaEl.textContent = fmt(gyosei) + ' + ' + fmt(visa) + ' + ' + fmt(jinken) + ' = ' + fmt(yearly) + '円/年（1名あたり）';
+  }
+  const travelFormulaEl = document.getElementById('ctravel_formula-' + id);
+  if (travelFormulaEl) {
+    travelFormulaEl.textContent = fmt(travelT) + ' + ' + fmt(travelH) + ' + ' + fmt(travelA) + ' = ' + fmt(travel) + '円/回（1回あたり合計）';
+  }
 
   const monthlyCost = yearly / 12 + travel / 3 + eigyo;
   const monthlyProfit = monthly - monthlyCost;
