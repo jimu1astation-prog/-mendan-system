@@ -517,7 +517,7 @@ function update() {
     const el = document.getElementById(id + '_calc');
     if (!el) return;
     const perPerson = workers > 0 ? total / workers : 0;
-    el.textContent = fmt(total) + '円 ÷ ' + workers + '名 = ' + fmt(perPerson) + '円/名';
+    el.textContent = fmt(total) + ' ÷ ' + workers + '名 = ' + fmt(perPerson) + '/名';
   }
   calcNote('i_travel', i_travel);
   calcNote('i_hotel', i_hotel);
@@ -528,11 +528,11 @@ function update() {
 
   const r_yearly_note = document.getElementById('r_yearly_calc');
   if (r_yearly_note) {
-    r_yearly_note.textContent = fmt(r_gyosei) + ' + ' + fmt(r_visa) + ' + ' + fmt(r_jinken) + ' = ' + fmt(r_gyosei + r_visa + r_jinken) + '円/年（1名あたり・年1回計上）';
+    r_yearly_note.textContent = fmt(r_gyosei) + ' + ' + fmt(r_visa) + ' + ' + fmt(r_jinken) + ' = ' + fmt(r_gyosei + r_visa + r_jinken) + '/年（1名あたり・年1回計上）';
   }
   const r_visit_note = document.getElementById('r_visit_calc');
   if (r_visit_note) {
-    r_visit_note.textContent = '合計: ' + fmt(r_travel) + ' + ' + fmt(r_hotel) + ' + ' + fmt(r_allow) + ' = ' + fmt(running_visit_total) + '円/回（1回分全額）';
+    r_visit_note.textContent = '合計: ' + fmt(r_travel) + ' + ' + fmt(r_hotel) + ' + ' + fmt(r_allow) + ' = ' + fmt(running_visit_total) + '/回（1回分全額）';
   }
 
   // --- 判定 ---
@@ -775,11 +775,11 @@ function updateClient(id) {
 
   const yearlyFormulaEl = document.getElementById('cyearly_formula-' + id);
   if (yearlyFormulaEl) {
-    yearlyFormulaEl.textContent = fmt(gyosei) + ' + ' + fmt(visa) + ' + ' + fmt(jinken) + ' = ' + fmt(yearly) + '円/年（1名あたり）';
+    yearlyFormulaEl.textContent = fmt(gyosei) + ' + ' + fmt(visa) + ' + ' + fmt(jinken) + ' = ' + fmt(yearly) + '/年（1名あたり）';
   }
   const travelFormulaEl = document.getElementById('ctravel_formula-' + id);
   if (travelFormulaEl) {
-    travelFormulaEl.textContent = fmt(travelT) + ' + ' + fmt(travelH) + ' + ' + fmt(travelA) + ' = ' + fmt(travel) + '円/回（1回あたり合計）';
+    travelFormulaEl.textContent = fmt(travelT) + ' + ' + fmt(travelH) + ' + ' + fmt(travelA) + ' = ' + fmt(travel) + '/回（1回あたり合計）';
   }
 
   const monthlyCost = yearly / 12 + travel / 3 + eigyo;
