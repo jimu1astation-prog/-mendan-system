@@ -717,12 +717,12 @@ function renderClients() {
       </div>
       <div class="row">
         <label>ビザ費用</label>
-        <input type="number" id="cvisa-${c.id}" value="30000" step="1000" oninput="updateClient(${c.id})">
+        <input type="number" id="cvisa-${c.id}" class="locked" value="30000" step="1000" oninput="updateClient(${c.id})" readonly>
         <span class="unit">円/年</span>
       </div>
       <div class="row">
         <label>事務人件費</label>
-        <input type="number" id="cjinken-${c.id}" value="6000" step="1000" oninput="updateClient(${c.id})">
+        <input type="number" id="cjinken-${c.id}" class="locked" value="6000" step="1000" oninput="updateClient(${c.id})" readonly>
         <span class="unit">円/年</span>
       </div>
       <div class="calc-note" id="cyearly_formula-${c.id}">-</div>
@@ -746,7 +746,7 @@ function renderClients() {
       <div class="calc-note" id="ctravel_formula-${c.id}">-</div>
       <div class="row">
         <label>営業人件費（1名あたり/月）</label>
-        <input type="number" id="ceigyo-${c.id}" value="6853" step="100" oninput="updateClient(${c.id})">
+        <input type="number" id="ceigyo-${c.id}" class="locked" value="6853" step="100" oninput="updateClient(${c.id})" readonly>
         <span class="unit">円</span>
       </div>
       <div class="mcard" style="margin-top:8px">
