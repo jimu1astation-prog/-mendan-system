@@ -186,7 +186,15 @@ function showError(message) {
 }
 
 function renderBreakdown(data) {
-  const detail = data.detail;
+  let detail = data.detail;
+  // detail がJSON文字列で保存されている場合はパースする
+  if (typeof detail === 'string') {
+    try { detail = JSON.parse(detail); } catch (e) { detail = null; }
+  }
+  // 保存形式によっては元の送信ペイロード全体が入っており、その中の detail を使う必要がある
+  if (detail && typeof detail === 'object' && detail.detail && typeof detail.detail === 'object') {
+    detail = detail.detail;
+  }
   if (!detail || typeof detail !== 'object') return; // 古い申請データには詳細がない場合がある
 
   const workers = parseInt(detail.workers) || parseInt(data.workers) || 0;
