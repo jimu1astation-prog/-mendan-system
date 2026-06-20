@@ -13,6 +13,20 @@ body{font-family:'Helvetica Neue',Arial,'Hiragino Kaku Gothic ProN',Meiryo,sans-
 .header h1{font-size:18px;font-weight:700;letter-spacing:-.02em}
 .header p{font-size:11px;color:#aab;margin-top:2px}
 .header-badge{font-size:10px;background:#e94560;color:#fff;padding:3px 10px;border-radius:20px;font-weight:700}
+.header-staff{font-size:12px;background:rgba(255,255,255,0.15);color:#fff;padding:5px 14px;border-radius:20px;font-weight:700;cursor:pointer;border:1px solid rgba(255,255,255,0.3)}
+.header-staff:hover{background:rgba(255,255,255,0.25)}
+/* ログイン画面 */
+.login-overlay{position:fixed;inset:0;background:#f0f2f5;z-index:1000;display:flex;align-items:center;justify-content:center}
+.login-overlay.hidden{display:none}
+.login-box{background:#fff;border-radius:16px;padding:2.5rem 2rem;max-width:400px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.12);text-align:center}
+.login-logo{font-size:32px;margin-bottom:.5rem}
+.login-title{font-size:20px;font-weight:800;color:#1a1a2e;margin-bottom:.25rem}
+.login-sub{font-size:12px;color:#999;margin-bottom:2rem}
+.staff-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.5rem}
+.staff-btn{padding:14px 8px;font-size:14px;font-weight:700;border:2px solid #e0e4ea;border-radius:10px;background:#fff;color:#1a1a2e;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:4px}
+.staff-btn:hover{border-color:#1a1a2e;background:#f5f6ff}
+.staff-btn .staff-icon{font-size:26px}
+.login-note{font-size:11px;color:#bbb}
 .setup{background:#fff;border:1px solid #e0e4ea;border-radius:10px;padding:1.25rem 1.5rem;margin-bottom:1rem}
 .setup h3{font-size:12px;font-weight:700;color:#555;margin-bottom:.85rem;text-transform:uppercase;letter-spacing:.05em}
 .setup-grid{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;margin-bottom:.6rem}
@@ -109,10 +123,31 @@ textarea{resize:vertical;min-height:180px;line-height:1.75}
 </style>
 </head>
 <body>
+
+<!-- ===== 担当者選択ログイン画面 ===== -->
+<div class="login-overlay" id="login-overlay">
+  <div class="login-box">
+    <div class="login-logo">👤</div>
+    <div class="login-title">面談管理システム v5</div>
+    <div class="login-sub">担当者を選んでください</div>
+    <div class="staff-grid">
+      <button class="staff-btn" onclick="selectStaff('チン')"><span class="staff-icon">🧑</span>チン</button>
+      <button class="staff-btn" onclick="selectStaff('ギラン')"><span class="staff-icon">🧑</span>ギラン</button>
+      <button class="staff-btn" onclick="selectStaff('真央')"><span class="staff-icon">🧑</span>真央</button>
+      <button class="staff-btn" onclick="selectStaff('ペティ')"><span class="staff-icon">🧑</span>ペティ</button>
+    </div>
+    <div class="login-note">選択した担当者名は面談記録と一緒に保存されます</div>
+  </div>
+</div>
+
+<!-- ===== メイン画面 ===== -->
 <div class="app">
   <div class="header">
     <div><h1>面談管理システム v5</h1><p>登録支援機関 — Claude AI で面談を自動分析・報告書生成</p></div>
-    <span class="header-badge">フェーズ1</span>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="header-staff" id="header-staff-btn" onclick="showLoginOverlay()">👤 <span id="header-staff-name">─</span></button>
+      <span class="header-badge">フェーズ1</span>
+    </div>
   </div>
   <div class="setup">
     <h3>設定（最初に1回だけ）</h3>
@@ -123,11 +158,11 @@ textarea{resize:vertical;min-height:180px;line-height:1.75}
     <div style="font-size:11px;color:#888;margin-top:.4rem;padding:.5rem .75rem;background:#f8f9fb;border-radius:6px">💾 報告書生成後「スプレッドシートに自動保存」ボタンでスプレッドシートに直接保存できます</div>
     <p class="saved-ok" id="saved-msg">✓ 保存しました</p>
   </div>
- <div class="tabs">
-  <div class="tab active" data-tab="pre">① 事前面談</div>
-  <div class="tab" data-tab="reg">② 定期面談</div>
-  <div class="tab" data-tab="urg">③ 緊急面談</div>
-</div>
+  <div class="tabs">
+    <div class="tab active" data-tab="pre">① 事前面談</div>
+    <div class="tab" data-tab="reg">② 定期面談</div>
+    <div class="tab" data-tab="urg">③ 緊急面談</div>
+  </div>
   <div id="panel-pre" class="panel active">
     <div class="card"><div class="card-title">基本情報</div>
       <div class="row3">
@@ -273,6 +308,25 @@ const GAS_URL = '/api/gas';
 const g = id => (document.getElementById(id)||{}).value || '';
 const checks = ids => ids.filter(id => document.getElementById(id)?.checked).map(id => document.getElementById(id).nextElementSibling?.textContent || id);
 
+// ===== 担当者管理 =====
+let currentStaff = '';
+
+function selectStaff(name){
+  currentStaff = name;
+  sessionStorage.setItem('current_staff', name);
+  document.getElementById('header-staff-name').textContent = name;
+  document.getElementById('login-overlay').classList.add('hidden');
+}
+
+function showLoginOverlay(){
+  document.getElementById('login-overlay').classList.remove('hidden');
+}
+
+function getCurrentStaff(){
+  return currentStaff || sessionStorage.getItem('current_staff') || '未選択';
+}
+
+// ===== タブ =====
 function switchTab(t){
   document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',['pre','reg','urg'][i]===t));
   ['pre','reg','urg'].forEach(p=>document.getElementById('panel-'+p).classList.toggle('active',p===t));
@@ -280,6 +334,7 @@ function switchTab(t){
 document.querySelectorAll('[data-tab]').forEach(el=>{
   el.addEventListener('click',()=>switchTab(el.dataset.tab));
 });
+
 function saveApiKey(){ const k=document.getElementById('api-key').value.trim(); if(k){localStorage.setItem('claude_api_key',k);document.getElementById('saved-msg').style.display='block';} }
 function saveAaiKey(){ const k=document.getElementById('aai-key').value.trim(); if(k){localStorage.setItem('aai_api_key',k);document.getElementById('saved-msg').style.display='block';} }
 function getApiKey(){ return localStorage.getItem('claude_api_key')||''; }
@@ -293,6 +348,9 @@ window.addEventListener('load',()=>{
   if(ak) document.getElementById('aai-key').value=ak;
   const today=new Date().toISOString().split('T')[0];
   ['pre-date','reg-date','urg-date'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=today; });
+  // セッションに担当者が残っていれば復元、なければログイン画面表示
+  const saved=sessionStorage.getItem('current_staff');
+  if(saved){ currentStaff=saved; document.getElementById('header-staff-name').textContent=saved; document.getElementById('login-overlay').classList.add('hidden'); }
 });
 
 function onDragOver(e,type){ e.preventDefault(); document.getElementById('drop-'+type).classList.add('drag-over'); }
@@ -366,6 +424,7 @@ async function runAnalysis(type){
   const apiKey=getApiKey();
   if(!apiKey){ alert('APIキーが設定されていません。'); return; }
   if(!g(type+'-text')){ alert('面談テキストを入力してください。'); return; }
+  if(!getCurrentStaff()||getCurrentStaff()==='未選択'){ alert('担当者を選択してください。\n（画面右上のボタンから選択できます）'); showLoginOverlay(); return; }
   const loader=document.getElementById('loader-'+type),result=document.getElementById('result-'+type);
   loader.classList.add('show'); result.innerHTML='';
   try{
@@ -393,6 +452,8 @@ async function saveToSheet(payload,btnId){
   if(!btn) return;
   const orig=btn.innerHTML;
   btn.textContent='⏳ 保存中...'; btn.disabled=true;
+  // 担当者名をpayloadに追加
+  payload.staff = getCurrentStaff();
   try{
     const res=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     const result=await res.json();
@@ -413,10 +474,10 @@ function renderPre(d){
   const scores=[['やる気・意欲','motivation'],['日本語能力','japanese_skill'],['コミュニケーション','communication'],['職務適性','aptitude'],['チームワーク','teamwork']];
   const mc=d.matching>=70?'#16a34a':d.matching>=50?'#1d4ed8':'#dc2626';
   const trans=d.translation?`<div class="rsec"><div class="rsec-label">📝 日本語訳</div><div class="rsec-text">${d.translation}</div></div>`:'';
-  const tsv=[g('pre-date'),g('pre-name'),g('pre-age'),g('pre-lang'),g('pre-visa'),g('pre-jlpt'),g('pre-area'),g('pre-job'),d.scores.motivation,d.scores.japanese_skill,d.scores.communication,d.scores.aptitude,d.scores.teamwork,d.matching,d.resign_reason,d.motivation_detail,d.concerns,d.summary].join('\t');
+  const tsv=[g('pre-date'),g('pre-name'),g('pre-age'),g('pre-lang'),g('pre-visa'),g('pre-jlpt'),g('pre-area'),g('pre-job'),d.scores.motivation,d.scores.japanese_skill,d.scores.communication,d.scores.aptitude,d.scores.teamwork,d.matching,d.resign_reason,d.motivation_detail,d.concerns,d.summary,getCurrentStaff()].join('\t');
   const payload={type:'pre',date:g('pre-date'),name:g('pre-name'),age:g('pre-age'),lang:g('pre-lang'),visa:g('pre-visa'),jlpt:g('pre-jlpt'),area:g('pre-area'),jobType:g('pre-job'),scores:d.scores,matching:d.matching,matchingReason:d.matching_reason||'',resignReason:d.resign_reason||'',strengths:d.motivation_detail||'',concerns:d.concerns||'',summary:d.summary||'',overall:d.overall_comment||''};
   return `<div class="report">
-  <div class="rh rh-pre"><div><h2>${g('pre-name')||'─'} — 事前面談報告書</h2><p>${g('pre-date')||'─'}　｜　${g('pre-lang')}話者</p></div><span class="badge badge-pre">事前面談</span></div>
+  <div class="rh rh-pre"><div><h2>${g('pre-name')||'─'} — 事前面談報告書</h2><p>${g('pre-date')||'─'}　｜　${g('pre-lang')}話者　｜　担当：${getCurrentStaff()}</p></div><span class="badge badge-pre">事前面談</span></div>
   ${trans}
   <div class="rsec"><div class="rsec-label">面談要約</div><div class="rsec-text">${d.summary}</div>
   <div class="grid2r"><div><div class="sub-l">転職・応募理由</div><div class="sub-v">${d.resign_reason}</div></div><div><div class="sub-l">向上心・将来目標</div><div class="sub-v">${d.motivation_detail}</div></div></div>
@@ -427,7 +488,7 @@ function renderPre(d){
   ${d.next_actions&&d.next_actions.length?`<div class="rsec"><div class="rsec-label">次のアクション</div><ul style="font-size:13px;padding-left:1.2rem">${d.next_actions.map(a=>`<li>${a}</li>`).join('')}</ul></div>`:''}
   <div class="rsec"><div class="rsec-label">総合所見</div><div class="rsec-text">${d.overall_comment}</div></div>
   <div class="rsec"><div class="copy-area"><h4>スプレッドシートへの保存</h4>
-  <table class="copy-table"><tr><td>面談日</td><td>${g('pre-date')}</td></tr><tr><td>氏名</td><td>${g('pre-name')}</td></tr><tr><td>やる気</td><td>${d.scores.motivation}</td></tr><tr><td>日本語力</td><td>${d.scores.japanese_skill}</td></tr><tr><td>コミュ力</td><td>${d.scores.communication}</td></tr><tr><td>職務適性</td><td>${d.scores.aptitude}</td></tr><tr><td>チームワーク</td><td>${d.scores.teamwork}</td></tr><tr><td>マッチ率</td><td>${d.matching}%</td></tr></table>
+  <table class="copy-table"><tr><td>面談日</td><td>${g('pre-date')}</td></tr><tr><td>氏名</td><td>${g('pre-name')}</td></tr><tr><td>担当者</td><td>${getCurrentStaff()}</td></tr><tr><td>やる気</td><td>${d.scores.motivation}</td></tr><tr><td>日本語力</td><td>${d.scores.japanese_skill}</td></tr><tr><td>コミュ力</td><td>${d.scores.communication}</td></tr><tr><td>職務適性</td><td>${d.scores.aptitude}</td></tr><tr><td>チームワーク</td><td>${d.scores.teamwork}</td></tr><tr><td>マッチ率</td><td>${d.matching}%</td></tr></table>
   <div style="display:flex;gap:8px;margin-top:.6rem;flex-wrap:wrap">
     <button class="btn-copy" id="save-pre-btn" style="background:#1a1a2e;color:#fff;border-color:#1a1a2e" onclick='saveToSheet(${JSON.stringify(payload)},"save-pre-btn")'>💾 スプレッドシートに自動保存</button>
     <button class="btn-copy" id="copy-pre-btn" onclick='copyToClipboard(${JSON.stringify(tsv)},"copy-pre-btn")'>📋 コピー</button>
@@ -440,11 +501,11 @@ function renderReg(d){
   let alertHtml='';
   if(d.alert_level==='urgent') alertHtml=`<div class="rsec"><div class="alert-r">🔴 <strong>要緊急対応：</strong>${d.alert}</div></div>`;
   else if(d.alert_level==='caution') alertHtml=`<div class="rsec"><div class="alert-y">🟡 <strong>要注意：</strong>${d.alert}</div></div>`;
-  const tsv=[g('reg-date'),g('reg-name'),g('reg-company'),g('reg-lang'),d.scores.motivation,d.scores.adaptation,d.scores.stability,d.scores.japanese_skill,d.alert||'',d.alert_level,d.summary,d.overall_comment].join('\t');
+  const tsv=[g('reg-date'),g('reg-name'),g('reg-company'),g('reg-lang'),d.scores.motivation,d.scores.adaptation,d.scores.stability,d.scores.japanese_skill,d.alert||'',d.alert_level,d.summary,d.overall_comment,getCurrentStaff()].join('\t');
   const payload={type:'reg',date:g('reg-date'),name:g('reg-name'),company:g('reg-company'),count:g('reg-count'),lang:g('reg-lang'),scores:d.scores,alertContent:d.alert||'',alertLevel:d.alert_level||'none',workStatus:d.work_status||'',humanRelations:d.human_relations||'',studyStatus:d.study_status||'',lifeStatus:d.life_status||'',futureGoal:d.future_goal||'',concerns:d.concerns||'',summary:d.summary||'',overall:d.overall_comment||''};
-  const wordPayload={name:g('reg-name'),date:g('reg-date'),company:g('reg-company'),count:g('reg-count'),lang:g('reg-lang'),staff:'担当者',scores:d.scores,prevScores:{motivation:parseInt(g('reg-prev-moti'))||0,adaptation:parseInt(g('reg-prev-adapt'))||0,stability:parseInt(g('reg-prev-stable'))||0,japanese_skill:parseInt(g('reg-prev-jp'))||0},scoreComments:d.score_comments||{},alertLevel:d.alert_level||'none',alertContent:d.alert||'',workStatus:d.work_status||'',humanRelations:d.human_relations||'',studyStatus:d.study_status||'',lifeStatus:d.life_status||'',futureGoal:d.future_goal||'',concerns:d.concerns||'',overallComment:d.overall_comment||'',checks:{work:{familiar:document.getElementById('cl-reg-w1')?.checked||false,nightShift:document.getElementById('cl-reg-w1b')?.checked||false,nightShift_memo:g('cl-reg-w1n'),renrakuHoukoku:document.getElementById('cl-reg-w2')?.checked||false,supervisor:document.getElementById('cl-reg-hr1')?.checked||false},study:{jpStudy:document.getElementById('cl-reg-s1')?.checked||false,jpStudy_memo:g('cl-reg-s1n'),kaigofukushi:document.getElementById('cl-reg-s2')?.checked||false},life:{remittance:document.getElementById('cl-reg-l1')?.checked||false,holiday_trip:document.getElementById('cl-reg-l2')?.checked||false,holiday_trip_memo:g('cl-reg-l2n'),concerns:document.getElementById('cl-reg-l3')?.checked||false},future:{yearsInJapan:document.getElementById('cl-reg-g1')?.checked||false,yearsInJapan_memo:g('cl-reg-g1n')}}};
+  const wordPayload={name:g('reg-name'),date:g('reg-date'),company:g('reg-company'),count:g('reg-count'),lang:g('reg-lang'),staff:getCurrentStaff(),scores:d.scores,prevScores:{motivation:parseInt(g('reg-prev-moti'))||0,adaptation:parseInt(g('reg-prev-adapt'))||0,stability:parseInt(g('reg-prev-stable'))||0,japanese_skill:parseInt(g('reg-prev-jp'))||0},scoreComments:d.score_comments||{},alertLevel:d.alert_level||'none',alertContent:d.alert||'',workStatus:d.work_status||'',humanRelations:d.human_relations||'',studyStatus:d.study_status||'',lifeStatus:d.life_status||'',futureGoal:d.future_goal||'',concerns:d.concerns||'',overallComment:d.overall_comment||'',checks:{work:{familiar:document.getElementById('cl-reg-w1')?.checked||false,nightShift:document.getElementById('cl-reg-w1b')?.checked||false,nightShift_memo:g('cl-reg-w1n'),renrakuHoukoku:document.getElementById('cl-reg-w2')?.checked||false,supervisor:document.getElementById('cl-reg-hr1')?.checked||false},study:{jpStudy:document.getElementById('cl-reg-s1')?.checked||false,jpStudy_memo:g('cl-reg-s1n'),kaigofukushi:document.getElementById('cl-reg-s2')?.checked||false},life:{remittance:document.getElementById('cl-reg-l1')?.checked||false,holiday_trip:document.getElementById('cl-reg-l2')?.checked||false,holiday_trip_memo:g('cl-reg-l2n'),concerns:document.getElementById('cl-reg-l3')?.checked||false},future:{yearsInJapan:document.getElementById('cl-reg-g1')?.checked||false,yearsInJapan_memo:g('cl-reg-g1n')}}};
   return `<div class="report">
-  <div class="rh rh-reg"><div><h2>${g('reg-name')||'─'} — 定期面談報告書（第${g('reg-count')||'─'}回）</h2><p>${g('reg-date')||'─'}　｜　${g('reg-company')||'─'}</p></div><span class="badge badge-reg">定期面談</span></div>
+  <div class="rh rh-reg"><div><h2>${g('reg-name')||'─'} — 定期面談報告書（第${g('reg-count')||'─'}回）</h2><p>${g('reg-date')||'─'}　｜　${g('reg-company')||'─'}　｜　担当：${getCurrentStaff()}</p></div><span class="badge badge-reg">定期面談</span></div>
   ${alertHtml}${trans}
   <div class="rsec"><div class="rsec-label">面談要約</div><div class="rsec-text">${d.summary}</div>
   <div class="grid2r"><div><div class="sub-l">仕事・職場</div><div class="sub-v">${d.work_status}</div></div><div><div class="sub-l">人間関係</div><div class="sub-v">${d.human_relations}</div></div></div>
@@ -455,7 +516,7 @@ function renderReg(d){
   ${d.next_actions&&d.next_actions.length?`<div class="rsec"><div class="rsec-label">次のアクション</div><ul style="font-size:13px;padding-left:1.2rem">${d.next_actions.map(a=>`<li>${a}</li>`).join('')}</ul></div>`:''}
   <div class="rsec"><div class="rsec-label">総合所見</div><div class="rsec-text">${d.overall_comment}</div></div>
   <div class="rsec"><div class="copy-area"><h4>スプレッドシートへの保存 ／ 報告書ダウンロード</h4>
-  <table class="copy-table"><tr><td>面談日</td><td>${g('reg-date')}</td></tr><tr><td>氏名</td><td>${g('reg-name')}</td></tr><tr><td>所属法人</td><td>${g('reg-company')}</td></tr><tr><td>モチベ</td><td>${d.scores.motivation}</td></tr><tr><td>職場適応</td><td>${d.scores.adaptation}</td></tr><tr><td>安定度</td><td>${d.scores.stability}</td></tr><tr><td>日本語力</td><td>${d.scores.japanese_skill}</td></tr><tr><td>アラート</td><td>${d.alert||'なし'}</td></tr></table>
+  <table class="copy-table"><tr><td>面談日</td><td>${g('reg-date')}</td></tr><tr><td>氏名</td><td>${g('reg-name')}</td></tr><tr><td>担当者</td><td>${getCurrentStaff()}</td></tr><tr><td>所属法人</td><td>${g('reg-company')}</td></tr><tr><td>モチベ</td><td>${d.scores.motivation}</td></tr><tr><td>職場適応</td><td>${d.scores.adaptation}</td></tr><tr><td>安定度</td><td>${d.scores.stability}</td></tr><tr><td>日本語力</td><td>${d.scores.japanese_skill}</td></tr><tr><td>アラート</td><td>${d.alert||'なし'}</td></tr></table>
   <div style="display:flex;gap:8px;margin-top:.6rem;flex-wrap:wrap">
     <button class="btn-copy" id="save-reg-btn" style="background:#1a1a2e;color:#fff;border-color:#1a1a2e" onclick='saveToSheet(${JSON.stringify(payload)},"save-reg-btn")'>💾 スプレッドシートに自動保存</button>
     <button class="btn-copy" id="word-reg-btn" style="background:#2E75B6;color:#fff;border-color:#2E75B6" onclick='generateWordReport(${JSON.stringify(wordPayload)},"word-reg-btn")'>📄 Word報告書を生成・ダウンロード</button>
@@ -466,10 +527,10 @@ function renderReg(d){
 function renderUrg(d){
   const urgColors=['','#16a34a','#2563eb','#1d4ed8','#d97706','#dc2626'];
   const trans=d.translation?`<div class="rsec"><div class="rsec-label">📝 日本語訳</div><div class="rsec-text">${d.translation}</div></div>`:'';
-  const tsv=[g('urg-date'),g('urg-name'),g('urg-company'),g('urg-type'),g('urg-lang'),d.urgency,d.summary,d.situation,d.person_wish,d.recommended_action,d.need_company_contact?'要連絡':'連絡不要',d.alert].join('\t');
+  const tsv=[g('urg-date'),g('urg-name'),g('urg-company'),g('urg-type'),g('urg-lang'),d.urgency,d.summary,d.situation,d.person_wish,d.recommended_action,d.need_company_contact?'要連絡':'連絡不要',d.alert,getCurrentStaff()].join('\t');
   const payload={type:'urg',date:g('urg-date'),name:g('urg-name'),company:g('urg-company'),problemType:g('urg-type'),lang:g('urg-lang'),urgency:d.urgency,summary:d.summary||'',situation:d.situation||'',personWish:d.person_wish||'',background:d.background||'',action:d.recommended_action||'',needCompanyContact:!!d.need_company_contact,alert:d.alert||'',overall:d.overall_comment||''};
   return `<div class="report">
-  <div class="rh rh-urg"><div><h2>${g('urg-name')||'─'} — 緊急面談報告書</h2><p>${g('urg-date')||'─'}　｜　${g('urg-type')}</p></div><span class="badge badge-urg">緊急面談</span></div>
+  <div class="rh rh-urg"><div><h2>${g('urg-name')||'─'} — 緊急面談報告書</h2><p>${g('urg-date')||'─'}　｜　${g('urg-type')}　｜　担当：${getCurrentStaff()}</p></div><span class="badge badge-urg">緊急面談</span></div>
   <div class="rsec"><div class="alert-r">🔴 <strong>${d.alert}</strong></div></div>
   ${trans}
   <div class="rsec"><div class="rsec-label">問題概要</div><div class="rsec-text">${d.summary}</div>
@@ -481,7 +542,7 @@ function renderUrg(d){
   ${d.next_actions&&d.next_actions.length?`<div class="rsec"><div class="rsec-label">次のアクション</div><ul style="font-size:13px;padding-left:1.2rem">${d.next_actions.map(a=>`<li>${a}</li>`).join('')}</ul></div>`:''}
   <div class="rsec"><div class="rsec-label">総合所見</div><div class="rsec-text">${d.overall_comment}</div></div>
   <div class="rsec"><div class="copy-area"><h4>スプレッドシートへの保存</h4>
-  <table class="copy-table"><tr><td>面談日</td><td>${g('urg-date')}</td></tr><tr><td>氏名</td><td>${g('urg-name')}</td></tr><tr><td>緊急度</td><td>${d.urgency}/5</td></tr><tr><td>法人連絡</td><td>${d.need_company_contact?'要連絡':'不要'}</td></tr><tr><td>アラート</td><td>${d.alert}</td></tr></table>
+  <table class="copy-table"><tr><td>面談日</td><td>${g('urg-date')}</td></tr><tr><td>氏名</td><td>${g('urg-name')}</td></tr><tr><td>担当者</td><td>${getCurrentStaff()}</td></tr><tr><td>緊急度</td><td>${d.urgency}/5</td></tr><tr><td>法人連絡</td><td>${d.need_company_contact?'要連絡':'不要'}</td></tr><tr><td>アラート</td><td>${d.alert}</td></tr></table>
   <div style="display:flex;gap:8px;margin-top:.6rem;flex-wrap:wrap">
     <button class="btn-copy" id="save-urg-btn" style="background:#b91c1c;color:#fff;border-color:#b91c1c" onclick='saveToSheet(${JSON.stringify(payload)},"save-urg-btn")'>💾 スプレッドシートに自動保存</button>
     <button class="btn-copy" id="copy-urg-btn" onclick='copyToClipboard(${JSON.stringify(tsv)},"copy-urg-btn")'>📋 コピー</button>
