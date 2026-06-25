@@ -172,7 +172,7 @@ input.need-input::placeholder { color: #b8860b; }
       </div>
       <div class="row">
         <label>ビザ費用（初回）</label>
-        <input type="number" id="i_visa" class="locked" value="6000" step="1000" oninput="update()" readonly>
+        <input type="number" id="i_visa" value="6000" step="1000" oninput="update()">
         <span class="unit">円</span>
       </div>
       <div class="row">
@@ -224,7 +224,7 @@ input.need-input::placeholder { color: #b8860b; }
       </div>
       <div class="row">
         <label>ビザ費用</label>
-        <input type="number" id="r_visa" class="locked" value="30000" step="1000" oninput="update()" readonly>
+        <input type="number" id="r_visa" value="30000" step="1000" oninput="update()">
         <span class="unit">円</span>
       </div>
       <div class="row">
@@ -258,7 +258,7 @@ input.need-input::placeholder { color: #b8860b; }
       <div class="sec-title">経費（毎月）</div>
       <div class="row">
         <label>営業人件費（1名あたり/月）</label>
-        <input type="number" id="r_eigyo_jinken" class="locked" value="6923" step="100" oninput="update()" readonly>
+        <input type="number" id="r_eigyo_jinken" class="locked" value="6853" step="100" oninput="update()" readonly>
         <span class="unit">円</span>
       </div>
     </div>
@@ -717,7 +717,7 @@ function renderClients() {
       </div>
       <div class="row">
         <label>ビザ費用</label>
-        <input type="number" id="cvisa-${c.id}" class="locked" value="30000" step="1000" oninput="updateClient(${c.id})" readonly>
+        <input type="number" id="cvisa-${c.id}" value="30000" step="1000" oninput="updateClient(${c.id})">
         <span class="unit">円/年</span>
       </div>
       <div class="row">
@@ -746,7 +746,7 @@ function renderClients() {
       <div class="calc-note" id="ctravel_formula-${c.id}">-</div>
       <div class="row">
         <label>営業人件費（1名あたり/月）</label>
-        <input type="number" id="ceigyo-${c.id}" class="locked" value="6923" step="100" oninput="updateClient(${c.id})" readonly>
+        <input type="number" id="ceigyo-${c.id}" class="locked" value="6853" step="100" oninput="updateClient(${c.id})" readonly>
         <span class="unit">円</span>
       </div>
       <div class="mcard" style="margin-top:8px">
