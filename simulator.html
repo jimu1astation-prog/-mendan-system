@@ -754,6 +754,7 @@ function renderClients() {
         <div class="cv" id="cresult-${c.id}">-</div>
         <div class="cs" id="cresult-sub-${c.id}">-</div>
       </div>
+      <button class="btn" id="csavebtn-${c.id}" onclick="saveClient(${c.id})" style="margin-top:8px;width:100%">スプレッドシートに保存</button>
     `;
     list.appendChild(div);
     updateClient(c.id);
@@ -805,6 +806,44 @@ function updateClient(id) {
     statusEl.textContent = '健全';
     statusEl.className = 'badge-status badge-ok';
     subEl.textContent = '粗利率 ' + pct(margin) + '。問題ありません。';
+  }
+}
+
+async function saveClient(id) {
+  updateClient(id);
+  const name = document.getElementById('cname-' + id).value.trim();
+  if (!name) { alert('法人名を入力してください'); return; }
+  const btn = document.getElementById('csavebtn-' + id);
+  const payload = {
+    action: 'client_check_save',
+    clientName: name,
+    staffName: currentStaff || '',
+    workers: parseFloat(document.getElementById('cworkers-' + id).value) || 0,
+    monthly: parseFloat(document.getElementById('cmonthly-' + id).value) || 0,
+    gyosei: parseFloat(document.getElementById('cgyosei-' + id).value) || 0,
+    visa: parseFloat(document.getElementById('cvisa-' + id).value) || 0,
+    jinken: parseFloat(document.getElementById('cjinken-' + id).value) || 0,
+    travelT: parseFloat(document.getElementById('ctravelt-' + id).value) || 0,
+    travelH: parseFloat(document.getElementById('ctravelh-' + id).value) || 0,
+    travelA: parseFloat(document.getElementById('ctravela-' + id).value) || 0,
+    eigyo: parseFloat(document.getElementById('ceigyo-' + id).value) || 0,
+    monthlyProfitText: document.getElementById('cresult-' + id).textContent,
+    statusText: document.getElementById('cstatus-' + id).textContent
+  };
+  btn.disabled = true; btn.textContent = '保存中...';
+  try {
+    const res = await fetch('/api/gas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    const data = await res.json();
+    if (data.success) {
+      btn.textContent = '✓ 保存しました';
+      setTimeout(() => { btn.textContent = 'スプレッドシートに保存'; btn.disabled = false; }, 1800);
+    } else {
+      alert('保存に失敗しました: ' + (data.message || ''));
+      btn.disabled = false; btn.textContent = 'スプレッドシートに保存';
+    }
+  } catch (e) {
+    alert('通信エラー：' + e.message);
+    btn.disabled = false; btn.textContent = 'スプレッドシートに保存';
   }
 }
 
