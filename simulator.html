@@ -422,6 +422,33 @@ async function estimateTransport() {
   btn.disabled = false;
 }
 
+async function estimateTransportClient(id) {
+  const addr = document.getElementById('caddress-' + id).value.trim();
+  if (!addr) { alert('住所を入力してください'); return; }
+  const box = document.getElementById('cai-box-' + id);
+  const btn = document.getElementById('cestbtn-' + id);
+  box.style.display = 'block';
+  box.className = 'ai-box loading';
+  box.textContent = 'AIが交通費を推定中...';
+  btn.disabled = true;
+
+  try {
+    const p = await callClaudeTransport(addr);
+    box.className = 'ai-box';
+    box.innerHTML =
+      '<strong>' + p.transport + '</strong>　往復 <strong>' + p.round_trip.toLocaleString() + '円</strong> 程度<br>' +
+      '<span style="color:#888;font-size:12px">' + p.memo + '</span>' +
+      (p.needs_hotel ? '<br><span style="color:#b06000;font-size:12px">⚠ 日帰り困難な場合があります。宿泊費を入力してください。</span>' : '');
+
+    document.getElementById('ctravelt-' + id).value = p.round_trip;
+    updateClient(id);
+  } catch(e) {
+    box.className = 'ai-box error';
+    box.textContent = '推定に失敗しました。手動で金額を入力してください。';
+  }
+  btn.disabled = false;
+}
+
 let lastResult = null;
 
 function update() {
@@ -673,6 +700,7 @@ function copyApproveUrl() {
 // ===== Tab 2: 既存法人チェック =====
 let clientIdCounter = 0;
 const clients = [];
+const clientMargins = {};
 
 function addClient() {
   clientIdCounter++;
@@ -726,6 +754,14 @@ function renderClients() {
         <span class="unit">円/年</span>
       </div>
       <div class="calc-note" id="cyearly_formula-${c.id}">-</div>
+
+      <div class="sec-title" style="margin-top:10px">法人の所在地（出張旅費の自動推定）</div>
+      <p style="font-size:11px;color:#aaa;margin-bottom:8px">出発地点：大阪市中央区谷町2-2-22（固定）</p>
+      <div class="addr-row">
+        <input type="text" id="caddress-${c.id}" placeholder="例：東京都新宿区西新宿2-8-1">
+        <button class="btn" id="cestbtn-${c.id}" onclick="estimateTransportClient(${c.id})">AIで推定</button>
+      </div>
+      <div class="ai-box" id="cai-box-${c.id}" style="display:none"></div>
 
       <div class="sec-title">定期面談 交通・宿泊・出張手当（1回あたり）</div>
       <div class="row">
@@ -786,6 +822,7 @@ function updateClient(id) {
   const monthlyCost = yearly / 12 + travel / 3 + eigyo;
   const monthlyProfit = monthly - monthlyCost;
   const margin = monthly > 0 ? monthlyProfit / monthly * 100 : 0;
+  clientMargins[id] = margin;
 
   const resultEl = document.getElementById('cresult-' + id);
   const subEl = document.getElementById('cresult-sub-' + id);
@@ -827,6 +864,7 @@ async function saveClient(id) {
     travelH: parseFloat(document.getElementById('ctravelh-' + id).value) || 0,
     travelA: parseFloat(document.getElementById('ctravela-' + id).value) || 0,
     eigyo: parseFloat(document.getElementById('ceigyo-' + id).value) || 0,
+    marginRate: Math.round((clientMargins[id] || 0) * 10) / 10,
     monthlyProfitText: document.getElementById('cresult-' + id).textContent,
     statusText: document.getElementById('cstatus-' + id).textContent
   };
