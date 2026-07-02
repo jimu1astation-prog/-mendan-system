@@ -75,40 +75,28 @@ hr { border: none; border-top: 1px solid #f0f0f0; margin: 1rem 0; }
 .badge-ok { background: #e3f7e9; color: #1a7a3a; }
 .badge-warn { background: #fff3da; color: #8a6000; }
 .badge-bad { background: #fde2e2; color: #b03030; }
-#staffOverlay { position: fixed; inset: 0; background: rgba(245,245,240,0.92); z-index: 9999; display: flex; align-items: center; justify-content: center; }
-#staffOverlay .card { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 2rem; text-align: center; max-width: 320px; width: 90%; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
-#staffOverlay .card-title { font-weight: 600; font-size: 15px; margin-bottom: 1rem; color: #222; }
-#staffOverlay select { font-size: 14px; padding: 9px 12px; border-radius: 8px; border: 1px solid #ddd; width: 100%; margin-bottom: 1rem; background: #fafafa; color: #222; }
-#staffBadge { display: none; position: fixed; top: 14px; right: 14px; background: #fff; border: 1px solid #ddd; border-radius: 20px; padding: 6px 14px; font-size: 12px; color: #444; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.06); z-index: 100; }
-#staffBadge:hover { background: #f5f5f5; }
-#submitResult input[readonly] { background: #fff; }
-input.locked { background: #ececec !important; color: #888 !important; border-color: #ddd !important; cursor: not-allowed; }
-input.locked:focus { outline: none; }
-input.need-input { background: #fff9e6 !important; border: 1.5px solid #f0b429 !important; }
-input.need-input::placeholder { color: #b8860b; }
-.calc-note { font-size: 11px; color: #2060c0; background: #f3f6ff; border: 1px solid #d8e2fb; border-radius: 6px; padding: 5px 9px; margin: -4px 0 10px 0; }
 </style>
 </head>
 <body>
-
-<div id="staffOverlay">
-  <div class="card">
-    <div class="card-title">担当者を選択してください</div>
-    <select id="staffSelect">
-      <option value="">選択してください</option>
-      <option value="チン">チン</option>
-      <option value="ギラン">ギラン</option>
-      <option value="真央">真央</option>
-      <option value="ペティ">ペティ</option>
-    </select>
-    <button class="btn" style="width:100%" onclick="confirmStaff()">開始する</button>
-  </div>
-</div>
-<div id="staffBadge" onclick="changeStaff()">担当者: -（変更）</div>
-
 <div class="container">
   <h1>登録支援機関 料金試算表</h1>
   <p class="subtitle">※すべて税抜き ／ 営業用・社内利用限定</p>
+
+  <div class="sec" id="staff-select-sec" style="border:2px solid #4a6cf7">
+    <div class="sec-title">担当者を選択してください</div>
+    <div class="row">
+      <label>お名前</label>
+      <select id="staffName" style="flex:2;font-size:14px;padding:7px 10px;border:1px solid #ddd;border-radius:7px;background:#fafafa;color:#222" onchange="onStaffSelected()">
+        <option value="">選択してください</option>
+        <option value="チン">チン</option>
+        <option value="ギラン">ギラン</option>
+        <option value="真央">真央</option>
+        <option value="ペティ">ペティ</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="main-content" style="opacity:0.35;pointer-events:none">
 
   <div class="tabbar">
     <div class="tabbtn active" id="tab-sim-btn" onclick="switchTab('sim')">新規見積りシミュレーター</div>
@@ -121,18 +109,14 @@ input.need-input::placeholder { color: #b8860b; }
   <div class="sec">
     <div class="sec-title">基本情報</div>
     <div class="row">
-      <label>法人名</label>
-      <input type="text" id="clientName" class="need-input" placeholder="例：株式会社サンプル">
-    </div>
-    <div class="row">
       <label>外国人労働者数（名）</label>
-      <input type="range" min="1" max="30" value="1" id="workers" step="1" oninput="update()">
-      <span class="val" id="workers-out">1名</span>
+      <input type="range" min="1" max="30" value="5" id="workers" step="1" oninput="update()">
+      <span class="val" id="workers-out">5名</span>
     </div>
     <div class="row">
-      <label>契約期間（年）<span class="sub">行政書士・ビザ・事務人件費（ランニング分）は年1回として計算</span></label>
-      <input type="range" min="1" max="5" value="1" id="years" step="1" oninput="update()">
-      <span class="val" id="years-out">1年</span>
+      <label>契約期間（年）<span class="sub">ビザ・事務人件費（ランニング分）は年1回として計算。行政書士代はイニシャルにまとめて計上</span></label>
+      <input type="range" min="1" max="5" value="5" id="years" step="1" oninput="update()">
+      <span class="val" id="years-out">5年</span>
     </div>
   </div>
 
@@ -140,7 +124,7 @@ input.need-input::placeholder { color: #b8860b; }
     <div class="sec-title">法人の所在地（出張旅費の自動推定）</div>
     <p style="font-size:12px;color:#aaa;margin-bottom:10px">出発地点：大阪市中央区谷町2-2-22（固定）</p>
     <div class="addr-row">
-      <input type="text" id="address" class="need-input" placeholder="例：東京都新宿区西新宿2-8-1">
+      <input type="text" id="address" placeholder="例：東京都新宿区西新宿2-8-1">
       <button class="btn" id="est-btn" onclick="estimateTransport()">AIで推定</button>
     </div>
     <div class="ai-box" id="ai-box" style="display:none"></div>
@@ -166,8 +150,8 @@ input.need-input::placeholder { color: #b8860b; }
 
       <div class="sec-title">経費</div>
       <div class="row">
-        <label>行政書士（初回）</label>
-        <input type="number" id="i_gyosei" value="6000" step="1000" oninput="update()">
+        <label>行政書士（5年で3回分をまとめて計上）<span class="sub">6,000円×3回。更新周期が平均2年程度のため5年で約3回発生</span></label>
+        <input type="number" id="i_gyosei" value="18000" step="1000" oninput="update()">
         <span class="unit">円</span>
       </div>
       <div class="row">
@@ -182,27 +166,27 @@ input.need-input::placeholder { color: #b8860b; }
       </div>
       <div class="row">
         <label>事務人件費（初回）</label>
-        <input type="number" id="i_jimu_jinken" class="locked" value="10000" step="1000" oninput="update()" readonly>
+        <input type="number" id="i_jimu_jinken" value="10000" step="1000" oninput="update()">
         <span class="unit">円</span>
       </div>
       <div class="row">
-        <label>配属同行 交通費（往復）<span class="sub">1回分の全額を入力（自動で人数按分）</span></label>
+        <label>配属同行 交通費（往復・出張1回の合計額）</label>
         <input type="number" id="i_travel" value="0" step="500" oninput="update()">
         <span class="unit">円</span>
       </div>
-      <div class="calc-note" id="i_travel_calc">-</div>
+      <p class="sub" id="i_travel_per_worker" style="margin-top:-4px;margin-bottom:6px">÷人数 → 1名あたり -</p>
       <div class="row">
-        <label>配属同行 宿泊費<span class="sub">1回分の全額を入力（自動で人数按分）</span></label>
+        <label>配属同行 宿泊費（出張1回の合計額）</label>
         <input type="number" id="i_hotel" value="0" step="1000" oninput="update()">
         <span class="unit">円</span>
       </div>
-      <div class="calc-note" id="i_hotel_calc">-</div>
+      <p class="sub" id="i_hotel_per_worker" style="margin-top:-4px;margin-bottom:6px">÷人数 → 1名あたり -</p>
       <div class="row">
-        <label>配属同行 出張手当<span class="sub">1回分の全額を入力（自動で人数按分）</span></label>
+        <label>配属同行 出張手当（出張1回の合計額）</label>
         <input type="number" id="i_allowance" value="0" step="1000" oninput="update()">
         <span class="unit">円</span>
       </div>
-      <div class="calc-note" id="i_allowance_calc">-</div>
+      <p class="sub" id="i_allowance_per_worker" style="margin-top:-4px;margin-bottom:8px">÷人数 → 1名あたり -</p>
     </div>
 
     <!-- ランニング -->
@@ -218,47 +202,40 @@ input.need-input::placeholder { color: #b8860b; }
 
       <div class="sec-title">経費（年1回×契約年数）</div>
       <div class="row">
-        <label>行政書士</label>
-        <input type="number" id="r_gyosei" value="6000" step="1000" oninput="update()">
-        <span class="unit">円</span>
-      </div>
-      <div class="row">
         <label>ビザ費用</label>
         <input type="number" id="r_visa" value="30000" step="1000" oninput="update()">
         <span class="unit">円</span>
       </div>
       <div class="row">
         <label>事務人件費</label>
-        <input type="number" id="r_jimu_jinken" class="locked" value="6000" step="1000" oninput="update()" readonly>
+        <input type="number" id="r_jimu_jinken" value="6000" step="1000" oninput="update()">
         <span class="unit">円</span>
       </div>
-      <div class="calc-note" id="r_yearly_calc">-</div>
 
       <div class="sec-title">経費（3ヶ月毎×契約期間）</div>
       <div class="row">
-        <label>定期面談 交通費（往復）<span class="sub">1回分の全額を入力（自動で人数按分）</span></label>
+        <label>定期面談 交通費（往復・出張1回の合計額）</label>
         <input type="number" id="r_travel" value="0" step="500" oninput="update()">
         <span class="unit">円</span>
       </div>
-      <div class="calc-note" id="r_travel_calc">-</div>
+      <p class="sub" id="r_travel_per_worker" style="margin-top:-4px;margin-bottom:6px">÷人数 → 1名あたり -</p>
       <div class="row">
-        <label>定期面談 宿泊費<span class="sub">1回分の全額を入力（自動で人数按分）</span></label>
+        <label>定期面談 宿泊費（出張1回の合計額）</label>
         <input type="number" id="r_hotel" value="0" step="1000" oninput="update()">
         <span class="unit">円</span>
       </div>
-      <div class="calc-note" id="r_hotel_calc">-</div>
+      <p class="sub" id="r_hotel_per_worker" style="margin-top:-4px;margin-bottom:6px">÷人数 → 1名あたり -</p>
       <div class="row">
-        <label>定期面談 出張手当<span class="sub">1回分の全額を入力（自動で人数按分）</span></label>
+        <label>定期面談 出張手当（出張1回の合計額）</label>
         <input type="number" id="r_allowance" value="0" step="1000" oninput="update()">
         <span class="unit">円</span>
       </div>
-      <div class="calc-note" id="r_allowance_calc">-</div>
-      <div class="calc-note" id="r_visit_calc">-</div>
+      <p class="sub" id="r_allowance_per_worker" style="margin-top:-4px;margin-bottom:8px">÷人数 → 1名あたり -</p>
 
       <div class="sec-title">経費（毎月）</div>
       <div class="row">
         <label>営業人件費（1名あたり/月）</label>
-        <input type="number" id="r_eigyo_jinken" class="locked" value="6853" step="100" oninput="update()" readonly>
+        <input type="number" id="r_eigyo_jinken" value="6923" step="100" oninput="update()">
         <span class="unit">円</span>
       </div>
     </div>
@@ -269,46 +246,60 @@ input.need-input::placeholder { color: #b8860b; }
 
     <div class="grid2">
       <div class="mcard accent-red">
-        <div class="cl">① イニシャル損益（初回のみ）</div>
+        <div class="cl">① イニシャル損益（初回のみ・全員分）</div>
         <div class="cv" id="r_initial_profit">-</div>
-        <div class="cs">初回売上 − 初回経費</div>
+        <div class="cs" id="r_initial_margin_sub">初回売上 − 初回経費／粗利率 -</div>
+        <div style="font-size:11px;color:#bbb;margin-top:8px;line-height:1.7;border-top:1px solid #f0d0d0;padding-top:8px" id="i_formula">-</div>
       </div>
       <div class="mcard accent-blue">
-        <div class="cl">② ランニング月次損益（1ヶ月あたり）</div>
+        <div class="cl">② ランニング月次損益（全員分・1ヶ月あたり）</div>
         <div class="cv" id="r_running_monthly">-</div>
-        <div class="cs">月額売上 − 月割り経費</div>
+        <div class="cs" id="r_running_monthly_sub">月額売上 − 月割り経費／粗利率 -</div>
+        <div style="font-size:11px;color:#bbb;margin-top:8px;line-height:1.7;border-top:1px solid #d0d8f0;padding-top:8px" id="r_formula">-</div>
+      </div>
+    </div>
+
+    <div class="grid2" style="margin-top:-4px">
+      <div class="mcard" style="background:#fff;border:1px solid #eee">
+        <div class="cl">イニシャル 粗利率<span style="font-weight:400">（本業ではない＝参考値）</span></div>
+        <div class="cv" id="r_initial_margin">-</div>
+        <div class="cs">初回限定。事業の本筋ではないため、これだけで判断しないこと</div>
+      </div>
+      <div class="mcard" style="background:#fff;border:2px solid #4a6cf7">
+        <div class="cl" style="color:#4a6cf7;font-weight:700">★ランニング 粗利率（本業の収益性）</div>
+        <div class="cv" id="r_running_margin">-</div>
+        <div class="cs">継続課金部分。これが事業の本当の利益率です</div>
       </div>
     </div>
 
     <div class="grid4">
       <div class="mcard"><div class="cl">総売上（契約期間合計）</div><div class="cv" id="r_rev">-</div></div>
       <div class="mcard"><div class="cl">総経費（契約期間合計）</div><div class="cv" id="r_cost">-</div></div>
-      <div class="mcard"><div class="cl">最終粗利</div><div class="cv" id="r_profit">-</div></div>
-      <div class="mcard"><div class="cl">粗利率</div><div class="cv" id="r_margin">-</div></div>
+      <div class="mcard"><div class="cl">最終粗利（イニシャル＋ランニング合計）</div><div class="cv" id="r_profit">-</div></div>
+      <div class="mcard"><div class="cl">全体 粗利率</div><div class="cv" id="r_margin">-</div></div>
     </div>
 
     <table class="bk">
       <tr><td colspan="2" class="muted" style="font-size:11px;padding-bottom:3px">── イニシャル内訳（1名あたり×人数）──</td></tr>
       <tr><td class="muted">事務手数料</td><td id="b_jimu">-</td></tr>
       <tr><td class="muted">紹介料</td><td id="b_shokai">-</td></tr>
-      <tr><td class="muted">行政書士（初回）</td><td id="b_i_gyosei">-</td></tr>
+      <tr><td class="muted">行政書士（5年3回分）</td><td id="b_i_gyosei">-</td></tr>
       <tr><td class="muted">ビザ費用（初回）</td><td id="b_i_visa">-</td></tr>
       <tr><td class="muted">送り出し機関紹介料</td><td id="b_i_sendout">-</td></tr>
       <tr><td class="muted">事務人件費（初回）</td><td id="b_i_jinken">-</td></tr>
       <tr><td class="muted">配属同行 交通・宿泊・出張手当</td><td id="b_i_travel">-</td></tr>
       <tr><td colspan="2" class="muted" style="font-size:11px;padding-top:10px;padding-bottom:3px">── ランニング内訳（契約期間合計）──</td></tr>
       <tr><td class="muted">支援費用（月額×人数×期間）</td><td id="b_monthly">-</td></tr>
-      <tr><td class="muted">行政書士（年1回×<span id="lbl_years1">-</span>回）</td><td id="b_r_gyosei">-</td></tr>
       <tr><td class="muted">ビザ費用（年1回×<span id="lbl_years2">-</span>回）</td><td id="b_r_visa">-</td></tr>
       <tr><td class="muted">事務人件費（年1回×<span id="lbl_years3">-</span>回）</td><td id="b_r_jinken">-</td></tr>
-      <tr><td class="muted">定期面談 交通・宿泊・出張手当（<span id="lbl_visits">-</span>回）</td><td id="b_r_travel">-</td></tr>
+      <tr><td class="muted">定期面談 交通・宿泊・出張手当（<span id="lbl_visits">-</span>回・人数割り）</td><td id="b_r_travel">-</td></tr>
       <tr><td class="muted">営業人件費（月額×人数×<span id="lbl_months">-</span>ヶ月）</td><td id="b_r_eigyo">-</td></tr>
     </table>
 
     <hr>
 
     <div id="verdict" class="verdict ok">
-      <div class="vt" id="v_title">判定</div>
+      <div class="vt" id="v_title">判定（ランニング基準）</div>
       <div class="vv" id="v_val">-</div>
       <div class="vs" id="v_sub">-</div>
     </div>
@@ -319,11 +310,26 @@ input.need-input::placeholder { color: #b8860b; }
       <div class="cs" id="r_payback_sub">-</div>
     </div>
 
+    <div class="mcard" id="r_improve" style="margin-top:10px;background:#fffbf0;border:1px solid #f0d890;display:none">
+      <div class="cl" style="color:#8a6000;font-weight:600">ランニング粗利率20%に届かせるには</div>
+      <div class="cs" id="r_improve_text" style="color:#8a6000;font-size:13px;line-height:1.8">-</div>
+    </div>
+
     <hr>
 
-    <div id="submitArea">
-      <button class="btn" id="submitBtn" onclick="submitApplication()">この内容で申請する</button>
-      <div id="submitResult" style="display:none;margin-top:14px;padding:14px;background:#f0f4ff;border:1px solid #c7d3f5;border-radius:8px;"></div>
+    <div class="sec-title">この試算内容を申請する</div>
+    <div class="row">
+      <label>法人名（申請先）</label>
+      <input type="text" id="apply_client_name" placeholder="例：株式会社サンプル">
+    </div>
+    <button class="btn" style="width:100%" onclick="submitApplication()" id="apply-btn">この内容で申請する</button>
+    <div class="ai-box" id="apply-status" style="display:none;margin-top:10px"></div>
+    <div id="apply-url-box" style="display:none;margin-top:10px">
+      <p style="font-size:13px;color:#333;margin-bottom:8px">承認用URLが発行されました。このURLをサイボウズの巡回スレッドに貼って、社長に確認を依頼してください。</p>
+      <div class="addr-row">
+        <input type="text" id="apply-url-text" readonly style="background:#f5f5f5">
+        <button class="btn btn-sub" onclick="copyApplyUrl()">コピー</button>
+      </div>
     </div>
   </div>
   </div>
@@ -340,34 +346,54 @@ input.need-input::placeholder { color: #b8860b; }
   </div>
   <!-- ============ END TAB 2 ============ -->
 
+  </div>
+  <!-- main-content の閉じタグ -->
+
   <p class="footer-note">社内利用限定・無断共有禁止</p>
 </div>
 
 <script>
+// ===== GAS通信共通関数 =====
+async function callGas(payload) {
+  const res = await fetch('/api/gas', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  return await res.json();
+}
+
+// ===== 担当者選択 =====
+function getStaffName() {
+  const el = document.getElementById('staffName');
+  return el ? el.value : '';
+}
+
+async function onStaffSelected() {
+  const name = getStaffName();
+  const mainContent = document.getElementById('main-content');
+  if (!name) {
+    mainContent.style.opacity = '0.35';
+    mainContent.style.pointerEvents = 'none';
+    return;
+  }
+  mainContent.style.opacity = '1';
+  mainContent.style.pointerEvents = 'auto';
+
+  // アクセスログを記録（失敗しても画面には影響させない）
+  try {
+    await callGas({ action: 'simulator_log', staffName: name });
+  } catch (e) {
+    console.error('アクセスログの記録に失敗しました', e);
+  }
+}
+
 function fmt(n) { return Math.round(n).toLocaleString('ja-JP') + '円'; }
 function fmtSigned(n) {
   const r = Math.round(n);
   return (r >= 0 ? '+' : '') + r.toLocaleString('ja-JP') + '円';
 }
 function pct(n) { return (Math.round(n * 10) / 10) + '%'; }
-
-// ===== 担当者選択 =====
-let currentStaff = '';
-
-function confirmStaff() {
-  const v = document.getElementById('staffSelect').value;
-  if (!v) { alert('担当者を選択してください'); return; }
-  currentStaff = v;
-  document.getElementById('staffOverlay').style.display = 'none';
-  const badge = document.getElementById('staffBadge');
-  badge.textContent = '担当者: ' + v + '（変更）';
-  badge.style.display = 'inline-block';
-}
-
-function changeStaff() {
-  document.getElementById('staffSelect').value = currentStaff || '';
-  document.getElementById('staffOverlay').style.display = 'flex';
-}
 
 function switchTab(name) {
   document.getElementById('tab-sim').classList.toggle('active', name === 'sim');
@@ -422,15 +448,13 @@ async function estimateTransport() {
   btn.disabled = false;
 }
 
-async function estimateTransportClient(id) {
-  const addr = document.getElementById('caddress-' + id).value.trim();
+async function estimateClientTransport(id) {
+  const addr = document.getElementById('caddr-' + id).value.trim();
   if (!addr) { alert('住所を入力してください'); return; }
   const box = document.getElementById('cai-box-' + id);
-  const btn = document.getElementById('cestbtn-' + id);
   box.style.display = 'block';
   box.className = 'ai-box loading';
   box.textContent = 'AIが交通費を推定中...';
-  btn.disabled = true;
 
   try {
     const p = await callClaudeTransport(addr);
@@ -440,16 +464,16 @@ async function estimateTransportClient(id) {
       '<span style="color:#888;font-size:12px">' + p.memo + '</span>' +
       (p.needs_hotel ? '<br><span style="color:#b06000;font-size:12px">⚠ 日帰り困難な場合があります。宿泊費を入力してください。</span>' : '');
 
-    document.getElementById('ctravelt-' + id).value = p.round_trip;
+    document.getElementById('ctravel-' + id).value = p.round_trip;
     updateClient(id);
   } catch(e) {
     box.className = 'ai-box error';
     box.textContent = '推定に失敗しました。手動で金額を入力してください。';
   }
-  btn.disabled = false;
 }
 
-let lastResult = null;
+// 申請機能用：最新の試算結果を保持するグローバル変数
+let latestSimResult = null;
 
 function update() {
   const workers = parseInt(document.getElementById('workers').value);
@@ -477,13 +501,21 @@ function update() {
   const i_allow   = parseFloat(document.getElementById('i_allowance').value) || 0;
 
   const initial_rev  = (p_jimu + p_shokai) * workers;
-  const initial_travel_total = i_travel + i_hotel + i_allow; // 1回分の全額（人数で割らない）
-  const initial_cost = (i_gyosei + i_visa + i_sendout + i_jinken) * workers + initial_travel_total;
+  const initial_cost_per_worker = (i_gyosei + i_visa + i_sendout + i_jinken) * workers;
+  const initial_travel_total = i_travel + i_hotel + i_allow; // 出張1回の合計額（人数で割らない）
+  const initial_cost = initial_cost_per_worker + initial_travel_total;
   const initial_profit = initial_rev - initial_cost;
+
+  function setPerWorker(elId, amount) {
+    const el = document.getElementById(elId);
+    if (el) el.textContent = '÷' + workers + '名 → 1名あたり ' + fmt(workers > 0 ? amount / workers : 0);
+  }
+  setPerWorker('i_travel_per_worker', i_travel);
+  setPerWorker('i_hotel_per_worker', i_hotel);
+  setPerWorker('i_allowance_per_worker', i_allow);
 
   // --- ランニング ---
   const p_monthly      = parseFloat(document.getElementById('p_monthly').value)      || 0;
-  const r_gyosei        = parseFloat(document.getElementById('r_gyosei').value)        || 0;
   const r_visa          = parseFloat(document.getElementById('r_visa').value)          || 0;
   const r_jinken         = parseFloat(document.getElementById('r_jimu_jinken').value)    || 0;
   const r_travel        = parseFloat(document.getElementById('r_travel').value)        || 0;
@@ -492,16 +524,22 @@ function update() {
   const r_eigyo         = parseFloat(document.getElementById('r_eigyo_jinken').value)   || 0;
 
   const running_rev_total   = p_monthly * workers * months;
-  const running_yearly_cost_per_visit = (r_gyosei + r_visa + r_jinken) * workers; // 年1回分
+  const running_yearly_cost_per_visit = (r_visa + r_jinken) * workers; // 年1回分（1名あたり×人数）
   const running_yearly_cost_total = running_yearly_cost_per_visit * years;
-  const running_visit_total = r_travel + r_hotel + r_allow; // 1回分の全額（人数で割らない）
-  const running_visit_cost_total  = running_visit_total * visits;
+  const running_travel_per_visit_total = r_travel + r_hotel + r_allow; // 出張1回の合計額
+  const running_travel_per_worker_per_visit = workers > 0 ? running_travel_per_visit_total / workers : 0; // 1名あたり・1回あたり（人数で割る）
+  const running_visit_cost_total  = running_travel_per_worker_per_visit * workers * visits; // = running_travel_per_visit_total * visits と同義だが、人数割りを明示
   const running_monthly_eigyo_total = r_eigyo * workers * months;
   const running_cost_total = running_yearly_cost_total + running_visit_cost_total + running_monthly_eigyo_total;
 
+  setPerWorker('r_travel_per_worker', r_travel);
+  setPerWorker('r_hotel_per_worker', r_hotel);
+  setPerWorker('r_allowance_per_worker', r_allow);
+
   const running_monthly_rev  = p_monthly * workers;
-  const running_monthly_cost = ((r_gyosei + r_visa + r_jinken) * workers) / 12 + running_visit_total / 3 + r_eigyo * workers;
+  const running_monthly_cost = ((r_visa + r_jinken) * workers) / 12 + (running_travel_per_worker_per_visit * workers) / 3 + r_eigyo * workers;
   const running_monthly_profit = running_monthly_rev - running_monthly_cost;
+  const running_monthly_profit_per_worker = workers > 0 ? running_monthly_profit / workers : 0;
 
   // --- 全体 ---
   const revenue = initial_rev + running_rev_total;
@@ -509,14 +547,55 @@ function update() {
   const profit = revenue - total_cost;
   const margin = revenue > 0 ? profit / revenue * 100 : 0;
 
+  const initial_margin = initial_rev > 0 ? initial_profit / initial_rev * 100 : 0;
+  const running_margin = running_monthly_rev > 0 ? running_monthly_profit / running_monthly_rev * 100 : 0;
+
   // --- 表示: サマリーカード ---
   const ip = document.getElementById('r_initial_profit');
   ip.textContent = fmtSigned(initial_profit);
   ip.className = 'cv ' + (initial_profit >= 0 ? 'pos' : 'neg');
+  document.getElementById('r_initial_margin_sub').textContent = '初回売上 − 初回経費／粗利率 ' + pct(initial_margin);
 
   const rm = document.getElementById('r_running_monthly');
   rm.textContent = fmtSigned(running_monthly_profit);
   rm.className = 'cv ' + (running_monthly_profit >= 0 ? 'pos' : 'neg');
+  document.getElementById('r_running_monthly_sub').textContent =
+    '月額売上 − 月割り経費／粗利率 ' + pct(running_margin) + '／1名あたり ' + fmtSigned(running_monthly_profit_per_worker);
+
+  const imEl = document.getElementById('r_initial_margin');
+  imEl.textContent = pct(initial_margin);
+  imEl.className = 'cv ' + (initial_margin >= 0 ? 'pos' : 'neg');
+
+  const rmEl = document.getElementById('r_running_margin');
+  rmEl.textContent = pct(running_margin);
+  rmEl.className = 'cv ' + (running_margin >= 0 ? 'pos' : 'neg');
+
+  // --- 計算式根拠表示 ---
+  const iFormulaEl = document.getElementById('i_formula');
+  if (iFormulaEl) {
+    iFormulaEl.innerHTML =
+      '【計算根拠・全員分（' + workers + '名）】<br>' +
+      '売上　(事務手数料' + fmt(p_jimu) + ' + 紹介料' + fmt(p_shokai) + ') × ' + workers + '名 = ' + fmt(initial_rev) + '<br>' +
+      '経費　(行政書士' + fmt(i_gyosei) + '【5年3回分】 + ビザ' + fmt(i_visa) + ' + 送り出し' + fmt(i_sendout) + ' + 事務人件費' + fmt(i_jinken) + ') × ' + workers + '名 = ' + fmt(initial_cost_per_worker) + '<br>' +
+      '　　+ 配属同行費（出張1回合計 ' + fmt(initial_travel_total) + '、人数で割らず1回分） = ' + fmt(initial_cost_per_worker) + ' + ' + fmt(initial_travel_total) + ' = ' + fmt(initial_cost) + '<br>' +
+      '─────────<br>' +
+      '損益　売上 ' + fmt(initial_rev) + ' − 経費 ' + fmt(initial_cost) + ' = ' + fmtSigned(initial_profit);
+  }
+
+  const rFormulaEl = document.getElementById('r_formula');
+  if (rFormulaEl) {
+    const yearlyCostAll = (r_visa + r_jinken) * workers;
+    rFormulaEl.innerHTML =
+      '【計算根拠・全員分（' + workers + '名）・1ヶ月あたり】<br>' +
+      '売上　支援費用' + fmt(p_monthly) + ' × ' + workers + '名 = ' + fmt(running_monthly_rev) + '<br>' +
+      '経費①　(ビザ' + fmt(r_visa) + ' + 事務人件費' + fmt(r_jinken) + ') × ' + workers + '名 = ' + fmt(yearlyCostAll) + ' ÷ 12ヶ月 = ' + fmt(yearlyCostAll/12) + '<br>' +
+      '経費②　定期面談（出張1回合計 ' + fmt(running_travel_per_visit_total) + ' ÷ ' + workers + '名 = ' + fmt(running_travel_per_worker_per_visit) + '/名） × ' + workers + '名 ÷ 3ヶ月 = ' + fmt((running_travel_per_worker_per_visit*workers)/3) + '<br>' +
+      '経費③　営業人件費 ' + fmt(r_eigyo) + ' × ' + workers + '名 = ' + fmt(r_eigyo*workers) + '<br>' +
+      '※行政書士代（5年3回分）はイニシャルで清算済みのため、ランニングには含まれません<br>' +
+      '─────────<br>' +
+      '月次コスト　' + fmt(yearlyCostAll/12) + ' + ' + fmt((running_travel_per_worker_per_visit*workers)/3) + ' + ' + fmt(r_eigyo*workers) + ' = ' + fmt(running_monthly_cost) + '<br>' +
+      '損益　売上 ' + fmt(running_monthly_rev) + ' − コスト ' + fmt(running_monthly_cost) + ' = ' + fmtSigned(running_monthly_profit);
+  }
 
   document.getElementById('r_rev').textContent    = fmt(revenue);
   document.getElementById('r_cost').textContent   = fmt(total_cost);
@@ -533,34 +612,10 @@ function update() {
   document.getElementById('b_i_travel').textContent  = '- ' + fmt(initial_travel_total);
 
   document.getElementById('b_monthly').textContent  = fmt(running_rev_total);
-  document.getElementById('b_r_gyosei').textContent = '- ' + fmt(r_gyosei * workers * years);
   document.getElementById('b_r_visa').textContent   = '- ' + fmt(r_visa * workers * years);
   document.getElementById('b_r_jinken').textContent = '- ' + fmt(r_jinken * workers * years);
   document.getElementById('b_r_travel').textContent = '- ' + fmt(running_visit_cost_total);
   document.getElementById('b_r_eigyo').textContent  = '- ' + fmt(running_monthly_eigyo_total);
-
-  // --- 計算式の可視化（1回分全額 ÷ 人数 = 1名あたり） ---
-  function calcNote(id, total) {
-    const el = document.getElementById(id + '_calc');
-    if (!el) return;
-    const perPerson = workers > 0 ? total / workers : 0;
-    el.textContent = fmt(total) + ' ÷ ' + workers + '名 = ' + fmt(perPerson) + '/名';
-  }
-  calcNote('i_travel', i_travel);
-  calcNote('i_hotel', i_hotel);
-  calcNote('i_allowance', i_allow);
-  calcNote('r_travel', r_travel);
-  calcNote('r_hotel', r_hotel);
-  calcNote('r_allowance', r_allow);
-
-  const r_yearly_note = document.getElementById('r_yearly_calc');
-  if (r_yearly_note) {
-    r_yearly_note.textContent = fmt(r_gyosei) + ' + ' + fmt(r_visa) + ' + ' + fmt(r_jinken) + ' = ' + fmt(r_gyosei + r_visa + r_jinken) + '/年（1名あたり・年1回計上）';
-  }
-  const r_visit_note = document.getElementById('r_visit_calc');
-  if (r_visit_note) {
-    r_visit_note.textContent = '合計: ' + fmt(r_travel) + ' + ' + fmt(r_hotel) + ' + ' + fmt(r_allow) + ' = ' + fmt(running_visit_total) + '/回（1回分全額）';
-  }
 
   // --- 判定 ---
   const vd = document.getElementById('verdict');
@@ -568,26 +623,26 @@ function update() {
   const vv = document.getElementById('v_val');
   const vs = document.getElementById('v_sub');
   vd.className = 'verdict';
-  if (margin >= 30) {
+  if (running_margin >= 30) {
     vd.classList.add('ok');
-    vt.textContent = '✓ 利益確保できています';
-    vv.textContent = fmt(profit) + '（粗利率 ' + pct(margin) + '）';
-    vs.textContent = '割引してもこの粗利率を維持できるか確認してください';
-  } else if (margin >= 10) {
+    vt.textContent = '✓ ランニングで利益確保できています';
+    vv.textContent = fmtSigned(running_monthly_profit) + '/月（ランニング粗利率 ' + pct(running_margin) + '）';
+    vs.textContent = '本業の収益性は健全です。割引してもこの粗利率を維持できるか確認してください';
+  } else if (running_margin >= 10) {
     vd.classList.add('warn');
-    vt.textContent = '⚠ 利益は出ていますが薄めです';
-    vv.textContent = fmt(profit) + '（粗利率 ' + pct(margin) + '）';
-    vs.textContent = 'これ以上の値引きは慎重に判断してください';
-  } else if (profit > 0) {
+    vt.textContent = '⚠ ランニングの利益は出ていますが薄めです';
+    vv.textContent = fmtSigned(running_monthly_profit) + '/月（ランニング粗利率 ' + pct(running_margin) + '）';
+    vs.textContent = 'イニシャルの儲けに頼らず、ランニング単体で十分な利益を出せるか見直してください';
+  } else if (running_monthly_profit > 0) {
     vd.classList.add('warn');
-    vt.textContent = '⚠ 利益がほぼありません';
-    vv.textContent = fmt(profit) + '（粗利率 ' + pct(margin) + '）';
-    vs.textContent = '値引きはこれ以上できません';
+    vt.textContent = '⚠ ランニングの利益がほぼありません';
+    vv.textContent = fmtSigned(running_monthly_profit) + '/月（ランニング粗利率 ' + pct(running_margin) + '）';
+    vs.textContent = 'これ以上の値引きはできません。継続契約として収益性が低すぎます';
   } else {
     vd.classList.add('danger');
-    vt.textContent = '✗ 全体で赤字です';
-    vv.textContent = fmt(profit) + '（粗利率 ' + pct(margin) + '）';
-    vs.textContent = '経費が売上を上回っています。値引き不可です。';
+    vt.textContent = '✗ ランニングが毎月赤字です（要注意）';
+    vv.textContent = fmtSigned(running_monthly_profit) + '/月（ランニング粗利率 ' + pct(running_margin) + '）';
+    vs.textContent = 'イニシャルが黒字でも、契約が続くほど損失が積み重なります。単価or経費を見直してください';
   }
 
   // --- 回収期間 ---
@@ -608,99 +663,61 @@ function update() {
     paybackSub.textContent = 'ランニングも赤字のため、契約期間内に回収できません';
   }
 
-  // --- 申請用に最新の試算結果を保持 ---
-  lastResult = { workers, years, revenue, cost: total_cost, profit, margin };
-}
-
-// ===== 申請 =====
-function collectDetail() {
-  const detail = {};
-  document.querySelectorAll('#tab-sim input[id]').forEach(el => {
-    detail[el.id] = el.value;
-  });
-  return detail;
-}
-
-async function submitApplication() {
-  if (!currentStaff) {
-    alert('担当者を選択してください');
-    document.getElementById('staffOverlay').style.display = 'flex';
-    return;
-  }
-  const clientName = document.getElementById('clientName').value.trim();
-  if (!clientName) {
-    alert('法人名を入力してください');
-    document.getElementById('clientName').focus();
-    return;
-  }
-  if (!lastResult) { update(); }
-
-  const btn = document.getElementById('submitBtn');
-  const resultBox = document.getElementById('submitResult');
-  btn.disabled = true;
-  btn.textContent = '送信中...';
-
-  const payload = {
-    action: 'simulator_submit',
-    staffName: currentStaff,
-    clientName: clientName,
-    workers: lastResult.workers,
-    years: lastResult.years,
-    revenue: lastResult.revenue,
-    cost: lastResult.cost,
-    profit: lastResult.profit,
-    margin: lastResult.margin,
-    detail: collectDetail()
-  };
-
-  try {
-    const res = await fetch('/api/gas', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    const data = await res.json();
-
-    if (data.success && data.id) {
-      const approveUrl = 'https://mendan-system.onrender.com/approve.html?id=' + encodeURIComponent(data.id);
-      resultBox.style.display = 'block';
-      resultBox.innerHTML =
-        '<div style="font-size:13px;margin-bottom:8px">申請ID: <strong>' + data.id + '</strong>（ステータス: 申請中）</div>' +
-        '<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">' +
-          '<input type="text" readonly id="approveUrl" value="' + approveUrl + '" style="flex:1;min-width:200px;font-size:12px;padding:6px 8px;">' +
-          '<button class="btn btn-sub" onclick="copyApproveUrl()">コピー</button>' +
-        '</div>' +
-        '<div style="font-size:12px;color:#8a6000;background:#fffbf0;border:1px solid #f0d890;border-radius:6px;padding:8px 10px">このURLをサイボウズの巡回スレッドに貼って社長に確認を依頼してください。</div>';
+  // ===== ランニング粗利率20%改善提案 =====
+  const rImproveBox = document.getElementById('r_improve');
+  const rImproveText = document.getElementById('r_improve_text');
+  if (rImproveBox && rImproveText) {
+    if (running_margin >= 20) {
+      rImproveBox.style.display = 'none';
     } else {
-      resultBox.style.display = 'block';
-      resultBox.innerHTML = '<div style="color:#c00;font-size:13px">申請に失敗しました：' + (data.message || '不明なエラー') + '</div>';
+      rImproveBox.style.display = 'block';
+      const target = 0.2;
+      // ランニング月次コスト(1名あたり) = (r_visa + r_jinken)/12 + 出張費/人数/3 + r_eigyo
+      const fixedCostPerWorker = (r_visa + r_jinken) / 12 + r_eigyo; // 人数に依存しない固定費
+      const travelTotalRun = r_travel + r_hotel + r_allow;
+      // ① 必要人数
+      const denom = p_monthly * (1 - target) - fixedCostPerWorker;
+      let peopleMsg;
+      if (denom <= 0) {
+        peopleMsg = '人数を増やしても20%には届きません（固定費が支援費に対して高すぎます）';
+      } else {
+        const wNeeded = Math.ceil(travelTotalRun / (3 * denom));
+        if (wNeeded <= workers) {
+          peopleMsg = '出張費以外の要因で20%未満です。人数増だけでは改善しません';
+        } else {
+          peopleMsg = 'あと ' + (wNeeded - workers) + '名 増やす（計' + wNeeded + '名）と20%に届きます';
+        }
+      }
+      // ② 必要支援費
+      const travelPerWorkerRun = workers > 0 ? travelTotalRun / workers : 0;
+      const neededMonthly = (fixedCostPerWorker + travelPerWorkerRun / 3) / (1 - target);
+      const priceMsg = '支援費（月額）を ' + fmt(neededMonthly) + ' 以上にすると20%に届きます（現在 ' + fmt(p_monthly) + '）';
+
+      rImproveText.innerHTML = '① ' + peopleMsg + '<br>② ' + priceMsg;
     }
-  } catch (e) {
-    resultBox.style.display = 'block';
-    resultBox.innerHTML = '<div style="color:#c00;font-size:13px">通信エラー：' + e.message + '</div>';
   }
 
-  btn.disabled = false;
-  btn.textContent = 'この内容で申請する';
-}
-
-function copyApproveUrl() {
-  const input = document.getElementById('approveUrl');
-  if (!input) return;
-  input.select();
-  input.setSelectionRange(0, 99999);
-  navigator.clipboard.writeText(input.value).then(() => {
-    alert('URLをコピーしました');
-  }).catch(() => {
-    document.execCommand('copy');
-    alert('URLをコピーしました');
-  });
+  // 申請用に最新の試算結果を保存
+  latestSimResult = {
+    workers: workers,
+    years: years,
+    revenue: revenue,
+    cost: total_cost,
+    profit: profit,
+    margin: margin,
+    initial_profit: initial_profit,
+    running_monthly_profit: running_monthly_profit,
+    running_margin: running_margin,
+    detail: {
+      p_jimu, p_shokai, i_gyosei, i_visa, i_sendout, i_jinken, i_travel, i_hotel, i_allow,
+      p_monthly, r_visa, r_jinken, r_travel, r_hotel, r_allow, r_eigyo
+    }
+  };
 }
 
 // ===== Tab 2: 既存法人チェック =====
 let clientIdCounter = 0;
 const clients = [];
-const clientMargins = {};
 
 function addClient() {
   clientIdCounter++;
@@ -737,7 +754,8 @@ function renderClients() {
         <input type="number" id="cmonthly-${c.id}" value="26000" step="1000" oninput="updateClient(${c.id})">
         <span class="unit">円</span>
       </div>
-      <div class="sec-title" style="margin-top:10px">行政書士・ビザ・事務人件費（年間・1名あたり）</div>
+
+      <p class="sub" style="margin-bottom:6px">行政書士・ビザ費用・事務人件費（年1回×契約年数、1名あたり）</p>
       <div class="row">
         <label>行政書士</label>
         <input type="number" id="cgyosei-${c.id}" value="6000" step="1000" oninput="updateClient(${c.id})">
@@ -750,47 +768,51 @@ function renderClients() {
       </div>
       <div class="row">
         <label>事務人件費</label>
-        <input type="number" id="cjinken-${c.id}" class="locked" value="6000" step="1000" oninput="updateClient(${c.id})" readonly>
+        <input type="number" id="cjinken-${c.id}" value="6000" step="1000" oninput="updateClient(${c.id})">
         <span class="unit">円/年</span>
       </div>
-      <div class="calc-note" id="cyearly_formula-${c.id}">-</div>
 
-      <div class="sec-title" style="margin-top:10px">法人の所在地（出張旅費の自動推定）</div>
-      <p style="font-size:11px;color:#aaa;margin-bottom:8px">出発地点：大阪市中央区谷町2-2-22（固定）</p>
+      <p class="sub" style="margin-bottom:6px">法人の所在地（出張旅費の自動推定・出発地点：大阪市中央区谷町2-2-22）</p>
       <div class="addr-row">
-        <input type="text" id="caddress-${c.id}" placeholder="例：東京都新宿区西新宿2-8-1">
-        <button class="btn" id="cestbtn-${c.id}" onclick="estimateTransportClient(${c.id})">AIで推定</button>
+        <input type="text" id="caddr-${c.id}" placeholder="例：東京都新宿区西新宿2-8-1">
+        <button class="btn" onclick="estimateClientTransport(${c.id})">AIで推定</button>
       </div>
       <div class="ai-box" id="cai-box-${c.id}" style="display:none"></div>
 
-      <div class="sec-title">定期面談 交通・宿泊・出張手当（1回あたり）</div>
+      <p class="sub" style="margin-bottom:6px">定期面談（3ヶ月に1回・出張1回あたりの合計額）</p>
       <div class="row">
         <label>交通費（往復）</label>
-        <input type="number" id="ctravelt-${c.id}" value="0" step="500" oninput="updateClient(${c.id})">
+        <input type="number" id="ctravel-${c.id}" value="0" step="500" oninput="updateClient(${c.id})">
         <span class="unit">円</span>
       </div>
       <div class="row">
         <label>宿泊費</label>
-        <input type="number" id="ctravelh-${c.id}" value="0" step="1000" oninput="updateClient(${c.id})">
+        <input type="number" id="chotel-${c.id}" value="0" step="1000" oninput="updateClient(${c.id})">
         <span class="unit">円</span>
       </div>
       <div class="row">
         <label>出張手当</label>
-        <input type="number" id="ctravela-${c.id}" value="0" step="1000" oninput="updateClient(${c.id})">
+        <input type="number" id="callow-${c.id}" value="0" step="1000" oninput="updateClient(${c.id})">
         <span class="unit">円</span>
       </div>
-      <div class="calc-note" id="ctravel_formula-${c.id}">-</div>
+
       <div class="row">
         <label>営業人件費（1名あたり/月）</label>
-        <input type="number" id="ceigyo-${c.id}" class="locked" value="6853" step="100" oninput="updateClient(${c.id})" readonly>
+        <input type="number" id="ceigyo-${c.id}" value="6923" step="100" oninput="updateClient(${c.id})">
         <span class="unit">円</span>
       </div>
       <div class="mcard" style="margin-top:8px">
         <div class="cl">月次損益（1名あたり）</div>
         <div class="cv" id="cresult-${c.id}">-</div>
         <div class="cs" id="cresult-sub-${c.id}">-</div>
+        <div style="font-size:11px;color:#bbb;margin-top:8px;line-height:1.7;border-top:1px solid #eee;padding-top:8px" id="cformula-${c.id}">-</div>
       </div>
-      <button class="btn" id="csavebtn-${c.id}" onclick="saveClient(${c.id})" style="margin-top:8px;width:100%">スプレッドシートに保存</button>
+      <div class="mcard" id="cimprove-${c.id}" style="margin-top:8px;background:#fffbf0;border:1px solid #f0d890;display:none">
+        <div class="cl" style="color:#8a6000;font-weight:600">粗利率20%に届かせるには</div>
+        <div class="cs" id="cimprove-text-${c.id}" style="color:#8a6000;font-size:13px;line-height:1.8">-</div>
+      </div>
+      <button class="btn" style="width:100%;margin-top:10px" onclick="recordClientToSheet(${c.id})" id="crecord-btn-${c.id}">この内容をスプレッドシートに記録する</button>
+      <div class="ai-box" id="crecord-status-${c.id}" style="display:none;margin-top:8px"></div>
     `;
     list.appendChild(div);
     updateClient(c.id);
@@ -798,31 +820,23 @@ function renderClients() {
 }
 
 function updateClient(id) {
+  const workers = parseFloat(document.getElementById('cworkers-' + id).value) || 1;
   const monthly = parseFloat(document.getElementById('cmonthly-' + id).value) || 0;
   const gyosei  = parseFloat(document.getElementById('cgyosei-' + id).value)  || 0;
   const visa    = parseFloat(document.getElementById('cvisa-' + id).value)    || 0;
   const jinken  = parseFloat(document.getElementById('cjinken-' + id).value)  || 0;
-  const travelT = parseFloat(document.getElementById('ctravelt-' + id).value) || 0;
-  const travelH = parseFloat(document.getElementById('ctravelh-' + id).value) || 0;
-  const travelA = parseFloat(document.getElementById('ctravela-' + id).value) || 0;
+  const travel  = parseFloat(document.getElementById('ctravel-' + id).value)  || 0; // 出張1回の合計額
+  const hotel   = parseFloat(document.getElementById('chotel-' + id).value)   || 0;
+  const allow   = parseFloat(document.getElementById('callow-' + id).value)   || 0;
   const eigyo   = parseFloat(document.getElementById('ceigyo-' + id).value)   || 0;
 
-  const yearly = gyosei + visa + jinken;
-  const travel = travelT + travelH + travelA;
+  const yearly = gyosei + visa + jinken; // 1名あたり年間合計
+  const travelTotal = travel + hotel + allow; // 出張1回の合計額（人数で割る）
+  const travelPerWorker = workers > 0 ? travelTotal / workers : 0;
 
-  const yearlyFormulaEl = document.getElementById('cyearly_formula-' + id);
-  if (yearlyFormulaEl) {
-    yearlyFormulaEl.textContent = fmt(gyosei) + ' + ' + fmt(visa) + ' + ' + fmt(jinken) + ' = ' + fmt(yearly) + '/年（1名あたり）';
-  }
-  const travelFormulaEl = document.getElementById('ctravel_formula-' + id);
-  if (travelFormulaEl) {
-    travelFormulaEl.textContent = fmt(travelT) + ' + ' + fmt(travelH) + ' + ' + fmt(travelA) + ' = ' + fmt(travel) + '/回（1回あたり合計）';
-  }
-
-  const monthlyCost = yearly / 12 + travel / 3 + eigyo;
+  const monthlyCost = yearly / 12 + travelPerWorker / 3 + eigyo;
   const monthlyProfit = monthly - monthlyCost;
   const margin = monthly > 0 ? monthlyProfit / monthly * 100 : 0;
-  clientMargins[id] = margin;
 
   const resultEl = document.getElementById('cresult-' + id);
   const subEl = document.getElementById('cresult-sub-' + id);
@@ -844,45 +858,166 @@ function updateClient(id) {
     statusEl.className = 'badge-status badge-ok';
     subEl.textContent = '粗利率 ' + pct(margin) + '。問題ありません。';
   }
+
+  const formulaEl = document.getElementById('cformula-' + id);
+  if (formulaEl) {
+    formulaEl.innerHTML =
+      '【計算根拠】<br>' +
+      '行政書士・ビザ・事務人件費　年間 ' + fmt(yearly) + '（1名あたり） ÷ 12ヶ月 = ' + fmt(yearly/12) + '/月<br>' +
+      '定期面談費　出張1回合計 ' + fmt(travelTotal) + ' ÷ ' + workers + '名 = ' + fmt(travelPerWorker) + '/名・回 ÷ 3ヶ月 = ' + fmt(travelPerWorker/3) + '/月<br>' +
+      '営業人件費　' + fmt(eigyo) + '/月（1名あたり）<br>' +
+      '─────────<br>' +
+      '1名あたり月次コスト　' + fmt(yearly/12) + ' + ' + fmt(travelPerWorker/3) + ' + ' + fmt(eigyo) + ' = ' + fmt(monthlyCost) + '<br>' +
+      '1名あたり月次損益　支援費用 ' + fmt(monthly) + ' − コスト ' + fmt(monthlyCost) + ' = ' + fmtSigned(monthlyProfit);
+  }
+
+  // ===== 粗利率20%改善提案 =====
+  const improveBox = document.getElementById('cimprove-' + id);
+  const improveText = document.getElementById('cimprove-text-' + id);
+  if (improveBox && improveText) {
+    if (margin >= 20) {
+      improveBox.style.display = 'none';
+    } else {
+      improveBox.style.display = 'block';
+      const target = 0.2;
+      const fixedCost = yearly / 12 + eigyo; // 人数に依存しない1名あたり固定費
+      // ① 必要人数（支援費・経費そのままで人数を増やす）
+      const denom = monthly * (1 - target) - fixedCost;
+      let peopleMsg;
+      if (denom <= 0) {
+        peopleMsg = '人数を増やしても20%には届きません（固定費が支援費に対して高すぎます）';
+      } else {
+        const wNeeded = Math.ceil(travelTotal / (3 * denom));
+        if (wNeeded <= workers) {
+          peopleMsg = '出張費以外の要因で20%未満です。人数増だけでは改善しません';
+        } else {
+          peopleMsg = 'あと ' + (wNeeded - workers) + '名 増やす（計' + wNeeded + '名）と20%に届きます';
+        }
+      }
+      // ② 必要支援費（今の人数のまま支援費を上げる）
+      const neededMonthly = (fixedCost + travelPerWorker / 3) / (1 - target);
+      const priceMsg = '支援費を ' + fmt(neededMonthly) + '/月 以上にすると20%に届きます（現在 ' + fmt(monthly) + '）';
+
+      improveText.innerHTML = '① ' + peopleMsg + '<br>② ' + priceMsg;
+    }
+  }
 }
 
-async function saveClient(id) {
-  updateClient(id);
-  const name = document.getElementById('cname-' + id).value.trim();
-  if (!name) { alert('法人名を入力してください'); return; }
-  const btn = document.getElementById('csavebtn-' + id);
-  const payload = {
-    action: 'client_check_save',
-    clientName: name,
-    staffName: currentStaff || '',
-    workers: parseFloat(document.getElementById('cworkers-' + id).value) || 0,
-    monthly: parseFloat(document.getElementById('cmonthly-' + id).value) || 0,
-    gyosei: parseFloat(document.getElementById('cgyosei-' + id).value) || 0,
-    visa: parseFloat(document.getElementById('cvisa-' + id).value) || 0,
-    jinken: parseFloat(document.getElementById('cjinken-' + id).value) || 0,
-    travelT: parseFloat(document.getElementById('ctravelt-' + id).value) || 0,
-    travelH: parseFloat(document.getElementById('ctravelh-' + id).value) || 0,
-    travelA: parseFloat(document.getElementById('ctravela-' + id).value) || 0,
-    eigyo: parseFloat(document.getElementById('ceigyo-' + id).value) || 0,
-    marginRate: Math.round((clientMargins[id] || 0) * 10) / 10,
-    monthlyProfitText: document.getElementById('cresult-' + id).textContent,
-    statusText: document.getElementById('cstatus-' + id).textContent
-  };
-  btn.disabled = true; btn.textContent = '保存中...';
+// ===== 新規見積り: 申請機能 =====
+async function submitApplication() {
+  const staffName = getStaffName();
+  if (!staffName) { alert('担当者名を選択してください'); return; }
+
+  const clientName = document.getElementById('apply_client_name').value.trim();
+  if (!clientName) { alert('法人名を入力してください'); return; }
+
+  if (!latestSimResult) { alert('試算結果がまだありません'); return; }
+
+  const btn = document.getElementById('apply-btn');
+  const statusBox = document.getElementById('apply-status');
+  btn.disabled = true;
+  statusBox.style.display = 'block';
+  statusBox.className = 'ai-box loading';
+  statusBox.textContent = '申請中...';
+
   try {
-    const res = await fetch('/api/gas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-    const data = await res.json();
-    if (data.success) {
-      btn.textContent = '✓ 保存しました';
-      setTimeout(() => { btn.textContent = 'スプレッドシートに保存'; btn.disabled = false; }, 1800);
+    const result = await callGas({
+      action: 'simulator_submit',
+      staffName: staffName,
+      clientName: clientName,
+      workers: latestSimResult.workers,
+      years: latestSimResult.years,
+      revenue: latestSimResult.revenue,
+      cost: latestSimResult.cost,
+      profit: latestSimResult.profit,
+      margin: latestSimResult.margin,
+      detail: latestSimResult.detail
+    });
+
+    if (result.success) {
+      statusBox.className = 'ai-box';
+      statusBox.textContent = '申請が完了しました（申請ID: ' + result.id + '）';
+
+      const approveUrl = window.location.origin + '/approve.html?id=' + result.id;
+      document.getElementById('apply-url-text').value = approveUrl;
+      document.getElementById('apply-url-box').style.display = 'block';
     } else {
-      alert('保存に失敗しました: ' + (data.message || ''));
-      btn.disabled = false; btn.textContent = 'スプレッドシートに保存';
+      statusBox.className = 'ai-box error';
+      statusBox.textContent = '申請に失敗しました：' + (result.message || '不明なエラー');
     }
   } catch (e) {
-    alert('通信エラー：' + e.message);
-    btn.disabled = false; btn.textContent = 'スプレッドシートに保存';
+    statusBox.className = 'ai-box error';
+    statusBox.textContent = '申請に失敗しました。通信エラーが発生しました。';
   }
+  btn.disabled = false;
+}
+
+function copyApplyUrl() {
+  const input = document.getElementById('apply-url-text');
+  input.select();
+  input.setSelectionRange(0, 99999);
+  navigator.clipboard.writeText(input.value).then(() => {
+    alert('URLをコピーしました');
+  }).catch(() => {
+    document.execCommand('copy');
+    alert('URLをコピーしました');
+  });
+}
+
+// ===== 既存法人チェック: スプレッドシート記録機能 =====
+async function recordClientToSheet(id) {
+  const staffName = getStaffName();
+  if (!staffName) { alert('担当者名を選択してください'); return; }
+
+  const clientName = document.getElementById('cname-' + id).value.trim() || ('法人' + id);
+  const workers = parseFloat(document.getElementById('cworkers-' + id).value) || 0;
+  const monthly = parseFloat(document.getElementById('cmonthly-' + id).value) || 0;
+  const gyosei  = parseFloat(document.getElementById('cgyosei-' + id).value)  || 0;
+  const visa    = parseFloat(document.getElementById('cvisa-' + id).value)    || 0;
+  const jinken  = parseFloat(document.getElementById('cjinken-' + id).value)  || 0;
+  const travel  = parseFloat(document.getElementById('ctravel-' + id).value)  || 0;
+  const hotel   = parseFloat(document.getElementById('chotel-' + id).value)   || 0;
+  const allow   = parseFloat(document.getElementById('callow-' + id).value)   || 0;
+  const eigyo   = parseFloat(document.getElementById('ceigyo-' + id).value)   || 0;
+
+  const yearly = gyosei + visa + jinken;
+  const travelTotal = travel + hotel + allow;
+  const travelPerWorker = workers > 0 ? travelTotal / workers : 0;
+  const monthlyCost = yearly / 12 + travelPerWorker / 3 + eigyo;
+  const monthlyProfit = monthly - monthlyCost;
+  const margin = monthly > 0 ? monthlyProfit / monthly * 100 : 0;
+
+  const btn = document.getElementById('crecord-btn-' + id);
+  const statusBox = document.getElementById('crecord-status-' + id);
+  btn.disabled = true;
+  statusBox.style.display = 'block';
+  statusBox.className = 'ai-box loading';
+  statusBox.textContent = '記録中...';
+
+  try {
+    const result = await callGas({
+      action: 'client_check_record',
+      staffName: staffName,
+      clientName: clientName,
+      workers: workers,
+      monthly: monthly,
+      monthlyProfit: monthlyProfit,
+      margin: margin,
+      detail: { gyosei, visa, jinken, travel, hotel, allow, eigyo }
+    });
+
+    if (result.success) {
+      statusBox.className = 'ai-box';
+      statusBox.textContent = 'スプレッドシートに記録しました';
+    } else {
+      statusBox.className = 'ai-box error';
+      statusBox.textContent = '記録に失敗しました：' + (result.message || '不明なエラー');
+    }
+  } catch (e) {
+    statusBox.className = 'ai-box error';
+    statusBox.textContent = '記録に失敗しました。通信エラーが発生しました。';
+  }
+  btn.disabled = false;
 }
 
 update();
