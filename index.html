@@ -162,6 +162,7 @@ textarea{resize:vertical;min-height:180px;line-height:1.75}
     <div class="tab active" data-tab="pre">① 事前面談</div>
     <div class="tab" data-tab="reg">② 定期面談</div>
     <div class="tab" data-tab="urg">③ 緊急面談</div>
+    <div class="tab" data-tab="split">④ 複数人分割</div>
   </div>
   <div id="panel-pre" class="panel active">
     <div class="card"><div class="card-title">基本情報</div>
@@ -302,6 +303,31 @@ textarea{resize:vertical;min-height:180px;line-height:1.75}
     <div class="loader" id="loader-urg"><div class="dot"></div><div class="dot"></div><div class="dot"></div><span>Claude AIが分析中... 約20〜40秒</span></div>
     <div id="result-urg"></div>
   </div>
+  <div id="panel-split" class="panel">
+    <div class="card">
+      <div class="card-title">複数人分割モード</div>
+      <p class="hint" style="margin-bottom:.75rem">数人続けて面談した長い録音を1回文字起こしし、候補者ごとに分割してから各タブへ送って個別に分析します。<br>目安：1ファイル2時間以内。3時間を超える場合は事前にmp3cut.net等で前半・後半に分けてください。</p>
+      <div class="field" style="margin-bottom:.75rem"><label>分割後に送る面談タブ</label><select id="split-target"><option value="pre">① 事前面談</option><option value="reg">② 定期面談</option><option value="urg">③ 緊急面談</option></select></div>
+      <div class="audio-drop" id="drop-split" ondragover="onDragOver(event,'split')" ondragleave="onDragLeave('split')" ondrop="onDropSplit(event)">
+        <div class="audio-drop-title">🎙 複数人分の音声ファイルをここにドロップ</div>
+        <div class="audio-drop-sub">またはクリックして選択（mp3 / m4a / wav / mp4）</div>
+        <input type="file" accept="audio/*,video/mp4,.m4a" style="position:absolute;inset:0;opacity:0;cursor:pointer" onchange="onFileSelectSplit(event)">
+      </div>
+      <div class="audio-progress" id="prog-split"><div class="progress-bar"><div class="progress-fill" id="progfill-split"></div></div><div class="progress-label" id="proglabel-split">アップロード中...</div></div>
+      <div class="audio-done" id="audiodone-split">✓ 文字起こし完了 — 下で区切りを確認してください</div>
+    </div>
+    <div class="card" id="split-editor" style="display:none">
+      <div class="card-title">区切り設定</div>
+      <p class="hint" style="margin-bottom:.5rem">AIが提案した区切りです。開始/終了時間（分:秒）と氏名を確認・修正してください。Zoomチャットの記録があればそれを参照してください。</p>
+      <div id="split-rows"></div>
+      <div style="display:flex;gap:.5rem;margin-top:.5rem;flex-wrap:wrap">
+        <button onclick="addSplitRow()" style="padding:.4rem .8rem">＋ 区間を追加</button>
+        <button onclick="suggestSplits()" style="padding:.4rem .8rem">🤖 AIに区切りを再提案させる</button>
+      </div>
+    </div>
+    <div class="loader" id="loader-split"><div class="dot"></div><div class="dot"></div><div class="dot"></div><span>処理中...</span></div>
+    <div id="result-split"></div>
+  </div>
 </div>
 <script>
 const GAS_URL = '/api/gas';
@@ -328,8 +354,8 @@ function getCurrentStaff(){
 
 // ===== タブ =====
 function switchTab(t){
-  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',['pre','reg','urg'][i]===t));
-  ['pre','reg','urg'].forEach(p=>document.getElementById('panel-'+p).classList.toggle('active',p===t));
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',['pre','reg','urg','split'][i]===t));
+  ['pre','reg','urg','split'].forEach(p=>document.getElementById('panel-'+p).classList.toggle('active',p===t));
 }
 document.querySelectorAll('[data-tab]').forEach(el=>{
   el.addEventListener('click',()=>switchTab(el.dataset.tab));
@@ -397,6 +423,114 @@ async function transcribeAudio(file,type){
   } finally { drop.style.opacity='1'; drop.style.pointerEvents='auto'; }
 }
 
+// ===== 複数人分割モード =====
+let splitUtterances = []; // {start(ms), end(ms), speaker, text}
+
+function onDropSplit(e){ e.preventDefault(); onDragLeave('split'); const f=e.dataTransfer.files[0]; if(f) transcribeMulti(f); }
+function onFileSelectSplit(e){ const f=e.target.files[0]; if(f) transcribeMulti(f); }
+
+function msToClock(ms){ const s=Math.floor(ms/1000); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+function clockToMs(str){ const p=String(str||'').trim().split(':').map(Number); if(p.length===3) return (p[0]*3600+p[1]*60+p[2])*1000; if(p.length===2) return (p[0]*60+p[1])*1000; return (p[0]||0)*1000; }
+
+async function transcribeMulti(file){
+  const aaiKey=getAaiKey();
+  if(!aaiKey){ alert('AssemblyAI APIキーが設定されていません。'); return; }
+  const prog=document.getElementById('prog-split'),fill=document.getElementById('progfill-split'),label=document.getElementById('proglabel-split'),done=document.getElementById('audiodone-split'),drop=document.getElementById('drop-split');
+  prog.classList.add('show'); done.classList.remove('show'); drop.style.opacity='0.5'; drop.style.pointerEvents='none';
+  document.getElementById('split-editor').style.display='none';
+  try{
+    label.textContent='音声をアップロード中...（長い音声は数分かかります）'; fill.style.width='10%'; fill.style.background='';
+    const uploadRes=await fetch('/api/aai/upload',{method:'POST',headers:{'authorization':aaiKey,'content-type':'application/octet-stream'},body:file});
+    if(!uploadRes.ok) throw new Error('アップロード失敗: '+uploadRes.status);
+    const {upload_url}=await uploadRes.json();
+    label.textContent='文字起こしを開始中...'; fill.style.width='25%';
+    const transcriptRes=await fetch('/api/aai/transcript',{method:'POST',headers:{'authorization':aaiKey,'content-type':'application/json'},body:JSON.stringify({audio_url:upload_url,speech_models:['universal-3-pro','universal-2'],language_detection:true,speaker_labels:true})});
+    if(!transcriptRes.ok) throw new Error('文字起こし開始失敗');
+    const {id}=await transcriptRes.json();
+    label.textContent='文字起こし処理中...（長い音声は10〜20分かかることがあります）';
+    let result;
+    for(let i=0;i<360;i++){ // 最大30分待機
+      await new Promise(r=>setTimeout(r,5000));
+      const pollRes=await fetch(`/api/aai/transcript/${id}`,{headers:{'authorization':aaiKey}});
+      result=await pollRes.json();
+      if(result.status==='completed') break;
+      if(result.status==='error') throw new Error('文字起こしエラー: '+result.error);
+      fill.style.width=Math.min(25+i*0.2,90)+'%';
+    }
+    if(!result||result.status!=='completed') throw new Error('タイムアウト。音声が長すぎる可能性があります。mp3cut.netで分割してから再度お試しください。');
+    fill.style.width='100%'; label.textContent='完了！';
+    splitUtterances=(result.utterances||[]).map(u=>({start:u.start,end:u.end,speaker:u.speaker,text:u.text}));
+    if(splitUtterances.length===0 && result.text){ splitUtterances=[{start:0,end:0,speaker:'A',text:result.text}]; }
+    done.classList.add('show');
+    drop.querySelector('.audio-drop-title').textContent='✓ '+file.name;
+    document.getElementById('split-editor').style.display='block';
+    await suggestSplits();
+  }catch(e){
+    label.textContent='エラー: '+e.message; fill.style.background='#ef4444';
+    alert('文字起こしエラー:\n'+e.message);
+  }finally{ drop.style.opacity='1'; drop.style.pointerEvents='auto'; }
+}
+
+async function suggestSplits(){
+  const apiKey=getApiKey();
+  if(!apiKey){ alert('Anthropic APIキーが設定されていません。'); return; }
+  if(splitUtterances.length===0){ alert('先に音声を文字起こししてください。'); return; }
+  const loader=document.getElementById('loader-split');
+  loader.classList.add('show');
+  try{
+    // 発言リストを圧縮して渡す（各発言の冒頭60字＋タイムスタンプ）
+    const lines=splitUtterances.map(u=>`${msToClock(u.start)} [${u.speaker}] ${u.text.slice(0,60)}`).join('\n').slice(0,12000);
+    const res=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:2000,system:'あなたは面談録音の区切りを検出するAIです。出力はJSONのみ。前置き・コードブロック記号は不要です。',messages:[{role:'user',content:`以下は複数の候補者を続けて面談した録音の文字起こしです（タイムスタンプ付き）。「よろしくお願いします」等の挨拶、自己紹介、話題の完全な切り替わりから、候補者ごとの区切りを推定してください。候補者名が発言中に出ていれば名前も抽出してください（不明なら「候補者1」等）。\n\n${lines}\n\nJSON形式:{"segments":[{"name":"氏名または候補者N","start":"分:秒","end":"分:秒"}]}`}]})});
+    const data=await res.json();
+    if(data.error) throw new Error(data.error.message);
+    let raw=data.content.map(c=>c.text||'').join('').replace(/```json|```/g,'').trim();
+    const d=JSON.parse(raw);
+    renderSplitRows(d.segments||[]);
+  }catch(e){
+    alert('区切り提案エラー: '+e.message+'\n手動で区間を追加してください。');
+    renderSplitRows([]);
+  }finally{ loader.classList.remove('show'); }
+}
+
+function renderSplitRows(segments){
+  const box=document.getElementById('split-rows');
+  box.innerHTML='';
+  if(segments.length===0) segments=[{name:'候補者1',start:'0:00',end:msToClock(splitUtterances[splitUtterances.length-1]?.end||0)}];
+  segments.forEach(s=>appendSplitRow(s.name,s.start,s.end));
+}
+
+function appendSplitRow(name,start,end){
+  const box=document.getElementById('split-rows');
+  const row=document.createElement('div');
+  row.className='split-row';
+  row.style.cssText='display:flex;gap:.4rem;align-items:center;margin-bottom:.4rem;flex-wrap:wrap';
+  row.innerHTML=`<input type="text" class="sr-name" value="${(name||'').replace(/"/g,'&quot;')}" placeholder="氏名" style="flex:2;min-width:110px;padding:.35rem">
+    <input type="text" class="sr-start" value="${start||'0:00'}" placeholder="開始 分:秒" style="width:70px;padding:.35rem">
+    <span>〜</span>
+    <input type="text" class="sr-end" value="${end||''}" placeholder="終了 分:秒" style="width:70px;padding:.35rem">
+    <button onclick="sendSegment(this)" style="padding:.35rem .6rem">▶ 送る</button>
+    <button onclick="this.parentElement.remove()" style="padding:.35rem .5rem;color:#b91c1c">✕</button>`;
+  box.appendChild(row);
+}
+function addSplitRow(){ appendSplitRow('','',''); }
+
+function sendSegment(btn){
+  const row=btn.parentElement;
+  const name=row.querySelector('.sr-name').value.trim();
+  const startMs=clockToMs(row.querySelector('.sr-start').value);
+  const endMs=clockToMs(row.querySelector('.sr-end').value);
+  if(!(endMs>startMs)){ alert('開始・終了時間を「分:秒」で正しく入力してください。'); return; }
+  const seg=splitUtterances.filter(u=>u.start>=startMs&&u.start<endMs);
+  if(seg.length===0){ alert('この区間に発言が見つかりません。時間を確認してください。'); return; }
+  const text=seg.map(u=>`[${u.speaker==='A'?'担当者':'人材'}] ${u.text}`).join('\n');
+  const target=document.getElementById('split-target').value;
+  document.getElementById(target+'-text').value=text;
+  const nameField=document.getElementById(target+'-name');
+  if(nameField&&name) nameField.value=name;
+  switchTab(target);
+  alert(`「${name||'候補者'}」の区間（${row.querySelector('.sr-start').value}〜${row.querySelector('.sr-end').value}）を${target==='pre'?'事前':target==='reg'?'定期':'緊急'}面談タブに送りました。\n基本情報を入力して分析を実行してください。`);
+}
+
 function sc(s){ return s>=8?'#16a34a':s>=5?'#1d4ed8':'#dc2626'; }
 function sf(s){ return s>=8?'#22c55e':s>=5?'#3b82f6':'#ef4444'; }
 function diffBadge(cur,prev){
@@ -406,7 +540,7 @@ function diffBadge(cur,prev){
 }
 
 function buildPrompt(type){
-  const sys=`あなたは登録支援機関の面談記録を処理する専門AIです。外国人技能実習生・特定技能外国人（主に介護職）との面談記録を分析します。言語が混在していても内容を正確に理解して日本語で出力してください。スコアは必ず発言の根拠とセットで出力してください。出力はJSONのみ。前置き・後書き・コードブロック記号は一切不要です。`;
+  const sys=`あなたは登録支援機関の面談記録を処理する専門AIです。外国人技能実習生・特定技能外国人（主に介護職）との面談記録を分析します。言語が混在していても内容を正確に理解して日本語で出力してください。重要：文字起こしの話者ラベル（[担当者][人材]等）は機械による推定で、入れ替わっている場合があります。ラベルを鵜呑みにせず、発言内容から役割を再判定してください（質問・進行する側＝担当支援員、経歴・悩み・希望を話す側＝候補者本人）。スコアは必ず候補者本人の発言を根拠にし、根拠とセットで出力してください。出力はJSONのみ。前置き・後書き・コードブロック記号は一切不要です。`;
   if(type==='pre'){
     const cl=checks(['cl-pre-r1','cl-pre-r2','cl-pre-g1','cl-pre-g2','cl-pre-c1','cl-pre-rel1']);
     return {system:sys,user:`事前面談を分析しJSONのみで返してください。\n氏名:${g('pre-name')} 年齢:${g('pre-age')} 言語:${g('pre-lang')} 在留資格:${g('pre-visa')} 日本語試験:${g('pre-jlpt')}\n面談日:${g('pre-date')} 希望エリア:${g('pre-area')} 希望職種:${g('pre-job')}\n確認済みチェック項目:${cl.join('、')||'なし'}\n面談テキスト:"""${g('pre-text').slice(0,1500)}"""\nJSON形式:{"translation":"日本語訳（日本語ならnull）","summary":"面談要約200字","resign_reason":"転職・応募理由","motivation_detail":"向上心・将来目標","personality":"性格・協調力・宗教配慮","concerns":"懸念事項（なければ「特になし」）","scores":{"motivation":整数1〜10,"japanese_skill":整数1〜10,"communication":整数1〜10,"aptitude":整数1〜10,"teamwork":整数1〜10},"score_comments":{"motivation":"根拠30字","japanese_skill":"根拠30字","communication":"根拠30字","aptitude":"根拠30字","teamwork":"根拠30字"},"matching":整数0〜100,"matching_reason":"マッチング理由50字","overall_comment":"総合所見100字","next_actions":["対応事項1","対応事項2"]}`};
