@@ -395,7 +395,7 @@ async function transcribeAudio(file,type){
     if(!uploadRes.ok) throw new Error('アップロード失敗: '+uploadRes.status);
     const {upload_url}=await uploadRes.json();
     label.textContent='文字起こしを開始中...'; fill.style.width='40%';
-    const transcriptRes=await fetch('/api/aai/transcript',{method:'POST',headers:{'authorization':aaiKey,'content-type':'application/json'},body:JSON.stringify({audio_url:upload_url,speech_models:['universal-3-pro','universal-2'],language_detection:true,speaker_labels:true,speakers_expected:2})});
+    const transcriptRes=await fetch('/api/aai/transcript',{method:'POST',headers:{'authorization':aaiKey,'content-type':'application/json'},body:JSON.stringify({audio_url:upload_url,speech_models:['universal-3-5-pro','universal-2'],language_detection:true,speaker_labels:true,speakers_expected:2})});
     if(!transcriptRes.ok) throw new Error('文字起こし開始失敗');
     const {id}=await transcriptRes.json();
     label.textContent='文字起こし処理中...'; fill.style.width='60%';
@@ -444,7 +444,7 @@ async function transcribeMulti(file){
     if(!uploadRes.ok) throw new Error('アップロード失敗: '+uploadRes.status);
     const {upload_url}=await uploadRes.json();
     label.textContent='文字起こしを開始中...'; fill.style.width='25%';
-    const transcriptRes=await fetch('/api/aai/transcript',{method:'POST',headers:{'authorization':aaiKey,'content-type':'application/json'},body:JSON.stringify({audio_url:upload_url,speech_models:['universal-3-pro','universal-2'],language_detection:true,speaker_labels:true})});
+    const transcriptRes=await fetch('/api/aai/transcript',{method:'POST',headers:{'authorization':aaiKey,'content-type':'application/json'},body:JSON.stringify({audio_url:upload_url,speech_models:['universal-3-5-pro','universal-2'],language_detection:true,speaker_labels:true})});
     if(!transcriptRes.ok) throw new Error('文字起こし開始失敗');
     const {id}=await transcriptRes.json();
     label.textContent='文字起こし処理中...（長い音声は10〜20分かかることがあります）';
