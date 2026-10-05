@@ -308,6 +308,7 @@ textarea{resize:vertical;min-height:180px;line-height:1.75}
       <div class="card-title">複数人分割モード</div>
       <p class="hint" style="margin-bottom:.75rem">数人続けて面談した長い録音を1回文字起こしし、候補者ごとに分割してから各タブへ送って個別に分析します。<br>目安：1ファイル2時間以内。3時間を超える場合は事前にmp3cut.net等で前半・後半に分けてください。</p>
       <div class="field" style="margin-bottom:.75rem"><label>分割後に送る面談タブ</label><select id="split-target"><option value="pre">① 事前面談</option><option value="reg">② 定期面談</option><option value="urg">③ 緊急面談</option></select></div>
+      <div class="field" style="margin-bottom:.75rem"><label>国籍・言語</label><select id="split-lang"><option value="ベトナム語">ベトナム</option><option value="インドネシア語">インドネシア</option><option value="ミャンマー語">ミャンマー</option><option value="日本語">日本</option></select></div>
       <div class="audio-drop" id="drop-split" ondragover="onDragOver(event,'split')" ondragleave="onDragLeave('split')" ondrop="onDropSplit(event)">
         <div class="audio-drop-title">🎙 複数人分の音声ファイルをここにドロップ</div>
         <div class="audio-drop-sub">またはクリックして選択（mp3 / m4a / wav / mp4）</div>
@@ -384,6 +385,13 @@ function onDragLeave(type){ document.getElementById('drop-'+type).classList.remo
 function onDrop(e,type){ e.preventDefault(); onDragLeave(type); const f=e.dataTransfer.files[0]; if(f) transcribeAudio(f,type); }
 function onFileSelect(e,type){ const f=e.target.files[0]; if(f) transcribeAudio(f,type); }
 
+// 言語ごとに音声認識モデルを使い分ける
+// ベトナム語・日本語：Universal-3.5 Pro（日本語との混在に対応）
+// インドネシア語・ミャンマー語：3.5 Proの対応外のため従来設定（誤って日本語等として認識されるのを防ぐ）
+function asrOptions(lang){
+  if(lang==='ベトナム語'||lang==='日本語') return {speech_models:['universal-3-5-pro','universal-2'],language_detection:true};
+  return {speech_models:['universal-3-pro','universal-2'],language_detection:true};
+}
 async function transcribeAudio(file,type){
   const aaiKey=getAaiKey();
   if(!aaiKey){ alert('AssemblyAI APIキーが設定されていません。'); return; }
@@ -395,7 +403,7 @@ async function transcribeAudio(file,type){
     if(!uploadRes.ok) throw new Error('アップロード失敗: '+uploadRes.status);
     const {upload_url}=await uploadRes.json();
     label.textContent='文字起こしを開始中...'; fill.style.width='40%';
-    const transcriptRes=await fetch('/api/aai/transcript',{method:'POST',headers:{'authorization':aaiKey,'content-type':'application/json'},body:JSON.stringify({audio_url:upload_url,speech_models:['universal-3-5-pro','universal-2'],language_detection:true,speaker_labels:true,speakers_expected:2})});
+    const transcriptRes=await fetch('/api/aai/transcript',{method:'POST',headers:{'authorization':aaiKey,'content-type':'application/json'},body:JSON.stringify({audio_url:upload_url,...asrOptions(document.getElementById(type+'-lang')?.value),speaker_labels:true,speakers_expected:2})});
     if(!transcriptRes.ok) throw new Error('文字起こし開始失敗');
     const {id}=await transcriptRes.json();
     label.textContent='文字起こし処理中...'; fill.style.width='60%';
@@ -444,7 +452,7 @@ async function transcribeMulti(file){
     if(!uploadRes.ok) throw new Error('アップロード失敗: '+uploadRes.status);
     const {upload_url}=await uploadRes.json();
     label.textContent='文字起こしを開始中...'; fill.style.width='25%';
-    const transcriptRes=await fetch('/api/aai/transcript',{method:'POST',headers:{'authorization':aaiKey,'content-type':'application/json'},body:JSON.stringify({audio_url:upload_url,speech_models:['universal-3-5-pro','universal-2'],language_detection:true,speaker_labels:true})});
+    const transcriptRes=await fetch('/api/aai/transcript',{method:'POST',headers:{'authorization':aaiKey,'content-type':'application/json'},body:JSON.stringify({audio_url:upload_url,...asrOptions(document.getElementById('split-lang')?.value),speaker_labels:true})});
     if(!transcriptRes.ok) throw new Error('文字起こし開始失敗');
     const {id}=await transcriptRes.json();
     label.textContent='文字起こし処理中...（長い音声は10〜20分かかることがあります）';
