@@ -224,17 +224,19 @@ textarea{resize:vertical;min-height:180px;line-height:1.75}
         <div class="field"><label>所属法人・施設</label><input type="text" id="reg-company" placeholder="〇〇介護老人保健施設"></div>
       </div>
       <div class="field"><label>前回スコア</label></div>
-      <div class="score-prev">
+      <div class="score-prev" style="grid-template-columns:repeat(5,1fr)">
         <div class="sp-box"><div class="sp-label">モチベ</div><div class="sp-val" id="prev-moti-display">─</div><input type="hidden" id="reg-prev-moti"></div>
         <div class="sp-box"><div class="sp-label">職場適応度</div><div class="sp-val" id="prev-adapt-display">─</div><input type="hidden" id="reg-prev-adapt"></div>
-        <div class="sp-box"><div class="sp-label">安定度</div><div class="sp-val" id="prev-stable-display">─</div><input type="hidden" id="reg-prev-stable"></div>
-        <div class="sp-box"><div class="sp-label">日本語力</div><div class="sp-val" id="prev-jp-display">─</div><input type="hidden" id="reg-prev-jp"></div>
+        <div class="sp-box"><div class="sp-label">心身の安定度</div><div class="sp-val" id="prev-stable-display">─</div><input type="hidden" id="reg-prev-stable"></div>
+        <div class="sp-box"><div class="sp-label">定着意向</div><div class="sp-val" id="prev-ret-display">─</div><input type="hidden" id="reg-prev-ret"></div>
+        <div class="sp-box"><div class="sp-label">日本語・資格</div><div class="sp-val" id="prev-jp-display">─</div><input type="hidden" id="reg-prev-jp"></div>
       </div>
-      <div class="row4" style="margin-top:.6rem">
+      <div class="row4" style="margin-top:.6rem;grid-template-columns:repeat(5,1fr)">
         <div class="field"><label style="font-size:10px">前回モチベ</label><input type="number" id="in-prev-moti" placeholder="7" min="1" max="10" oninput="setPrev('moti',this.value)"></div>
         <div class="field"><label style="font-size:10px">前回職場適応</label><input type="number" id="in-prev-adapt" placeholder="6" min="1" max="10" oninput="setPrev('adapt',this.value)"></div>
-        <div class="field"><label style="font-size:10px">前回安定度</label><input type="number" id="in-prev-stable" placeholder="7" min="1" max="10" oninput="setPrev('stable',this.value)"></div>
-        <div class="field"><label style="font-size:10px">前回日本語力</label><input type="number" id="in-prev-jp" placeholder="5" min="1" max="10" oninput="setPrev('jp',this.value)"></div>
+        <div class="field"><label style="font-size:10px">前回心身の安定度</label><input type="number" id="in-prev-stable" placeholder="7" min="1" max="10" oninput="setPrev('stable',this.value)"></div>
+        <div class="field"><label style="font-size:10px">前回定着意向</label><input type="number" id="in-prev-ret" placeholder="7" min="1" max="10" oninput="setPrev('ret',this.value)"></div>
+        <div class="field"><label style="font-size:10px">前回日本語・資格</label><input type="number" id="in-prev-jp" placeholder="5" min="1" max="10" oninput="setPrev('jp',this.value)"></div>
       </div>
     </div>
     <div class="card"><div class="card-title">チェックリスト確認</div>
@@ -555,7 +557,7 @@ function buildPrompt(type){
   }
   if(type==='reg'){
     const cl=checks(['cl-reg-w1','cl-reg-w1b','cl-reg-w2','cl-reg-hr1','cl-reg-s1','cl-reg-s2','cl-reg-l1','cl-reg-l2','cl-reg-g1','cl-reg-l3']);
-    return {system:sys,user:`定期面談を分析しJSONのみで返してください。\n氏名:${g('reg-name')} 言語:${g('reg-lang')} 所属法人:${g('reg-company')}\n面談日:${g('reg-date')} 第${g('reg-count')}回\n前回スコア→モチベ:${g('reg-prev-moti')||'初回'} 適応度:${g('reg-prev-adapt')||'初回'} 安定度:${g('reg-prev-stable')||'初回'} 日本語:${g('reg-prev-jp')||'初回'}\n確認済みチェック項目:${cl.join('、')||'なし'}\n夜勤メモ:${g('cl-reg-w1n')} 勉強メモ:${g('cl-reg-s1n')} 帰国メモ:${g('cl-reg-l2n')} 将来メモ:${g('cl-reg-g1n')}\n面談テキスト:"""${g('reg-text')}"""\nJSON形式:{"translation":null,"summary":"面談要約（400〜600字）","work_status":"仕事・職場状況（本人の訴え・職場の課題を含め、具体的に箇条書き。各行は「・」で始め改行で区切る）","human_relations":"人間関係（具体的に）","study_status":"勉強・資格状況（試験名・受験予定・研修の申込状況など具体的に箇条書き）","life_status":"私生活・健康（具体的に）","future_goal":"将来目標・在留資格や将来への不安（具体的に）","concerns":"懸念事項（なければ「特になし」）","person_requests":"本人からの要望・相談（書類の依頼など。なければ「特になし」）","scores":{"motivation":整数1〜10,"adaptation":整数1〜10,"stability":整数1〜10,"japanese_skill":整数1〜10},"score_comments":{"motivation":"根拠60字","adaptation":"根拠60字","stability":"根拠60字","japanese_skill":"根拠60字"},"overall_comment":"総合所見（200〜300字）","alert":null,"alert_level":"none または caution または urgent","next_actions":["担当者が行う対応事項を、面談中に約束・依頼された内容も含めすべて列挙"]}`};
+    return {system:sys,user:`定期面談を分析しJSONのみで返してください。\n氏名:${g('reg-name')} 言語:${g('reg-lang')} 所属法人:${g('reg-company')}\n面談日:${g('reg-date')} 第${g('reg-count')}回\n前回スコア→モチベ:${g('reg-prev-moti')||'初回'} 適応度:${g('reg-prev-adapt')||'初回'} 心身の安定度:${g('reg-prev-stable')||'初回'} 定着意向:${g('reg-prev-ret')||'初回'} 日本語・資格への取り組み:${g('reg-prev-jp')||'初回'}\nスコアの定義→motivation=モチベーション（仕事への意欲）、adaptation=職場適応度（仕事・人間関係への適応）、stability=心身の安定度（精神面と体調）、retention=定着意向（日本・現在の職場で働き続けたい意思。転職・帰国・他国就労の検討があれば低く）、japanese_skill=日本語・資格への取り組み（日本語学習・試験受験・研修など本人の取り組み状況。会話の言語からは判定しない）\n確認済みチェック項目:${cl.join('、')||'なし'}\n夜勤メモ:${g('cl-reg-w1n')} 勉強メモ:${g('cl-reg-s1n')} 帰国メモ:${g('cl-reg-l2n')} 将来メモ:${g('cl-reg-g1n')}\n面談テキスト:"""${g('reg-text')}"""\nJSON形式:{"translation":null,"summary":"面談要約（400〜600字）","work_status":"仕事・職場状況（本人の訴え・職場の課題を含め、具体的に箇条書き。各行は「・」で始め改行で区切る）","human_relations":"人間関係（具体的に）","study_status":"勉強・資格状況（試験名・受験予定・研修の申込状況など具体的に箇条書き）","life_status":"私生活・健康（具体的に）","future_goal":"将来目標・在留資格や将来への不安（具体的に）","concerns":"懸念事項（なければ「特になし」）","person_requests":"本人からの要望・相談（書類の依頼など。なければ「特になし」）","checklist":{"familiar":面談で仕事への慣れ・困りごとが話されたらtrue,"night_shift":夜勤回数が話されたらtrue,"renraku":報連相・出勤状況・利用者との意思疎通が話されたらtrue,"supervisor":上司・同僚との関係が話されたらtrue,"jp_study":日本語学習・試験予定が話されたらtrue,"kaigofukushi":介護福祉士等の資格取得意向が話されたらtrue,"remittance":仕送り・貯金・健康状態が話されたらtrue,"holiday_trip":一時帰国予定が話されたらtrue,"years_in_japan":日本での就労希望年数・将来目標が話されたらtrue,"concerns":困りごと・質問の有無が話されたらtrue},"checklist_memo":{"night_shift":"夜勤回数など20字以内（なければ空文字）","jp_study":"試験名・時期20字以内","holiday_trip":"帰国予定20字以内","years_in_japan":"希望年数・目標20字以内"},"scores":{"motivation":整数1〜10,"adaptation":整数1〜10,"stability":整数1〜10,"retention":整数1〜10,"japanese_skill":整数1〜10},"score_comments":{"motivation":"根拠60字","adaptation":"根拠60字","stability":"根拠60字","retention":"根拠60字","japanese_skill":"根拠60字"},"overall_comment":"総合所見（200〜300字）","alert":null,"alert_level":"none または caution または urgent","next_actions":["担当者が行う対応事項を、面談中に約束・依頼された内容も含めすべて列挙"]}`};
   }
   if(type==='urg'){
     return {system:sys,user:`緊急面談を分析しJSONのみで返してください。\n氏名:${g('urg-name')} 言語:${g('urg-lang')} 所属法人:${g('urg-company')}\n面談日:${g('urg-date')} 問題種別:${g('urg-type')}\n面談テキスト:"""${g('urg-text')}"""\nJSON形式:{"translation":null,"summary":"問題概要（300〜500字）","situation":"現在の状況50字","person_wish":"本人の意向50字","background":"経緯50字","urgency":整数1〜5,"urgency_reason":"緊急度の根拠50字","recommended_action":"推奨対応100字","need_company_contact":true,"overall_comment":"総合所見（200〜300字）","alert":"アラート内容（必須）","next_actions":["担当者が行う対応事項を、面談中に約束・依頼された内容も含めすべて列挙"]}`};
@@ -638,14 +640,15 @@ function renderPre(d){
 }
 
 function renderReg(d){
-  const scores=[['モチベーション','motivation',g('reg-prev-moti')],['職場適応度','adaptation',g('reg-prev-adapt')],['精神的安定度','stability',g('reg-prev-stable')],['日本語力','japanese_skill',g('reg-prev-jp')]];
+  const scores=[['モチベーション','motivation',g('reg-prev-moti')],['職場適応度','adaptation',g('reg-prev-adapt')],['心身の安定度','stability',g('reg-prev-stable')],['定着意向','retention',g('reg-prev-ret')],['日本語・資格への取り組み','japanese_skill',g('reg-prev-jp')]];
   const trans=d.translation?`<div class="rsec"><div class="rsec-label">📝 日本語訳</div><div class="rsec-text">${d.translation}</div></div>`:'';
   let alertHtml='';
   if(d.alert_level==='urgent') alertHtml=`<div class="rsec"><div class="alert-r">🔴 <strong>要緊急対応：</strong>${d.alert}</div></div>`;
   else if(d.alert_level==='caution') alertHtml=`<div class="rsec"><div class="alert-y">🟡 <strong>要注意：</strong>${d.alert}</div></div>`;
-  const tsv=[g('reg-date'),g('reg-name'),g('reg-company'),g('reg-lang'),d.scores.motivation,d.scores.adaptation,d.scores.stability,d.scores.japanese_skill,d.alert||'',d.alert_level,d.summary,d.overall_comment,getCurrentStaff()].join('\t');
+  const tsv=[g('reg-date'),g('reg-name'),g('reg-company'),g('reg-lang'),d.scores.motivation,d.scores.adaptation,d.scores.stability,d.scores.japanese_skill,d.alert||'',d.alert_level,d.summary,d.overall_comment,getCurrentStaff(),d.scores.retention??''].join('\t');
   const payload={type:'reg',date:g('reg-date'),name:g('reg-name'),company:g('reg-company'),count:g('reg-count'),lang:g('reg-lang'),scores:d.scores,alertContent:d.alert||'',alertLevel:d.alert_level||'none',workStatus:d.work_status||'',humanRelations:d.human_relations||'',studyStatus:d.study_status||'',lifeStatus:d.life_status||'',futureGoal:d.future_goal||'',concerns:d.concerns||'',summary:d.summary||'',overall:d.overall_comment||''};
-  const wordPayload=window.__regWordPayload={name:g('reg-name'),date:g('reg-date'),company:g('reg-company'),count:g('reg-count'),lang:g('reg-lang'),staff:getCurrentStaff(),scores:d.scores,prevScores:{motivation:parseInt(g('reg-prev-moti'))||0,adaptation:parseInt(g('reg-prev-adapt'))||0,stability:parseInt(g('reg-prev-stable'))||0,japanese_skill:parseInt(g('reg-prev-jp'))||0},scoreComments:d.score_comments||{},alertLevel:d.alert_level||'none',alertContent:d.alert||'',workStatus:d.work_status||'',humanRelations:d.human_relations||'',studyStatus:d.study_status||'',lifeStatus:d.life_status||'',futureGoal:d.future_goal||'',concerns:d.concerns||'',personRequests:d.person_requests||'',nextActions:d.next_actions||[],overallComment:d.overall_comment||'',checks:{work:{familiar:document.getElementById('cl-reg-w1')?.checked||false,nightShift:document.getElementById('cl-reg-w1b')?.checked||false,nightShift_memo:g('cl-reg-w1n'),renrakuHoukoku:document.getElementById('cl-reg-w2')?.checked||false,supervisor:document.getElementById('cl-reg-hr1')?.checked||false},study:{jpStudy:document.getElementById('cl-reg-s1')?.checked||false,jpStudy_memo:g('cl-reg-s1n'),kaigofukushi:document.getElementById('cl-reg-s2')?.checked||false},life:{remittance:document.getElementById('cl-reg-l1')?.checked||false,holiday_trip:document.getElementById('cl-reg-l2')?.checked||false,holiday_trip_memo:g('cl-reg-l2n'),concerns:document.getElementById('cl-reg-l3')?.checked||false},future:{yearsInJapan:document.getElementById('cl-reg-g1')?.checked||false,yearsInJapan_memo:g('cl-reg-g1n')}}};
+  const ai=d.checklist||{},am=d.checklist_memo||{},ck2=(id,k)=>(document.getElementById(id)?.checked||false)||ai[k]===true,mm=(id,k)=>g(id)||am[k]||'';
+  const wordPayload=window.__regWordPayload={name:g('reg-name'),date:g('reg-date'),company:g('reg-company'),count:g('reg-count'),lang:g('reg-lang'),staff:getCurrentStaff(),scores:d.scores,prevScores:{motivation:parseInt(g('reg-prev-moti'))||0,adaptation:parseInt(g('reg-prev-adapt'))||0,stability:parseInt(g('reg-prev-stable'))||0,retention:parseInt(g('reg-prev-ret'))||0,japanese_skill:parseInt(g('reg-prev-jp'))||0},scoreComments:d.score_comments||{},alertLevel:d.alert_level||'none',alertContent:d.alert||'',workStatus:d.work_status||'',humanRelations:d.human_relations||'',studyStatus:d.study_status||'',lifeStatus:d.life_status||'',futureGoal:d.future_goal||'',concerns:d.concerns||'',personRequests:d.person_requests||'',nextActions:d.next_actions||[],overallComment:d.overall_comment||'',checks:{work:{familiar:ck2('cl-reg-w1','familiar'),nightShift:ck2('cl-reg-w1b','night_shift'),nightShift_memo:mm('cl-reg-w1n','night_shift'),renrakuHoukoku:ck2('cl-reg-w2','renraku'),supervisor:ck2('cl-reg-hr1','supervisor')},study:{jpStudy:ck2('cl-reg-s1','jp_study'),jpStudy_memo:mm('cl-reg-s1n','jp_study'),kaigofukushi:ck2('cl-reg-s2','kaigofukushi')},life:{remittance:ck2('cl-reg-l1','remittance'),holiday_trip:ck2('cl-reg-l2','holiday_trip'),holiday_trip_memo:mm('cl-reg-l2n','holiday_trip'),concerns:ck2('cl-reg-l3','concerns')},future:{yearsInJapan:ck2('cl-reg-g1','years_in_japan'),yearsInJapan_memo:mm('cl-reg-g1n','years_in_japan')}}};
   return `<div class="report">
   <div class="rh rh-reg"><div><h2>${g('reg-name')||'─'} — 定期面談報告書（第${g('reg-count')||'─'}回）</h2><p>${g('reg-date')||'─'}　｜　${g('reg-company')||'─'}　｜　担当：${getCurrentStaff()}</p></div><span class="badge badge-reg">定期面談</span></div>
   ${alertHtml}${trans}
@@ -658,7 +661,7 @@ function renderReg(d){
   ${d.next_actions&&d.next_actions.length?`<div class="rsec"><div class="rsec-label">次のアクション</div><ul style="font-size:13px;padding-left:1.2rem">${d.next_actions.map(a=>`<li>${a}</li>`).join('')}</ul></div>`:''}
   <div class="rsec"><div class="rsec-label">総合所見</div><div class="rsec-text">${d.overall_comment}</div></div>
   <div class="rsec"><div class="copy-area"><h4>スプレッドシートへの保存 ／ 報告書ダウンロード</h4>
-  <table class="copy-table"><tr><td>面談日</td><td>${g('reg-date')}</td></tr><tr><td>氏名</td><td>${g('reg-name')}</td></tr><tr><td>担当者</td><td>${getCurrentStaff()}</td></tr><tr><td>所属法人</td><td>${g('reg-company')}</td></tr><tr><td>モチベ</td><td>${d.scores.motivation}</td></tr><tr><td>職場適応</td><td>${d.scores.adaptation}</td></tr><tr><td>安定度</td><td>${d.scores.stability}</td></tr><tr><td>日本語力</td><td>${d.scores.japanese_skill}</td></tr><tr><td>アラート</td><td>${d.alert||'なし'}</td></tr></table>
+  <table class="copy-table"><tr><td>面談日</td><td>${g('reg-date')}</td></tr><tr><td>氏名</td><td>${g('reg-name')}</td></tr><tr><td>担当者</td><td>${getCurrentStaff()}</td></tr><tr><td>所属法人</td><td>${g('reg-company')}</td></tr><tr><td>モチベ</td><td>${d.scores.motivation}</td></tr><tr><td>職場適応</td><td>${d.scores.adaptation}</td></tr><tr><td>心身の安定度</td><td>${d.scores.stability}</td></tr><tr><td>定着意向</td><td>${d.scores.retention??''}</td></tr><tr><td>日本語・資格</td><td>${d.scores.japanese_skill}</td></tr><tr><td>アラート</td><td>${d.alert||'なし'}</td></tr></table>
   <div style="display:flex;gap:8px;margin-top:.6rem;flex-wrap:wrap">
     <button class="btn-copy" id="save-reg-btn" style="background:#1a1a2e;color:#fff;border-color:#1a1a2e" onclick='saveToSheet(${JSON.stringify(payload)},"save-reg-btn")'>💾 スプレッドシートに自動保存</button>
     <button class="btn-copy" id="word-reg-btn" style="background:#2E75B6;color:#fff;border-color:#2E75B6" onclick='generateWordReport(window.__regWordPayload,"word-reg-btn")'>📄 Word報告書を生成・ダウンロード</button>
@@ -707,7 +710,12 @@ async function generateWordReport(d,btnId){
     const sp=()=>new Paragraph({spacing:{after:80},children:[]});
     const chkRow=(checked,label,memo)=>new TableRow({children:[cl(checked?'✓':'□',{width:500,center:true,size:18,bold:!!checked}),cl(label,{width:3500,size:17}),cl(memo||'',{width:5026,size:17})]});
     const chkSub=(text)=>new TableRow({children:[new TableCell({columnSpan:3,borders:bds,width:{size:CW,type:WidthType.DXA},shading:{fill:LIGHT_BLUE,type:ShadingType.CLEAR},margins:{top:60,bottom:60,left:120,right:120},children:[new Paragraph({children:[new TextRun({text,bold:true,size:18,font:'Arial',color:DARK})]})]})]}); 
-    const scRow=(label,cur,prev,comment)=>{const diff=cur-(prev||0),ds=prev?`（差：${diff>=0?'+':''}${diff}）`:'',dc=diff<-1?'CC0000':diff>1?'006600':'444444';return new TableRow({children:[cl(label,{width:2000,bold:true,size:18}),new TableCell({borders:bds,width:{size:3000,type:WidthType.DXA},margins:{top:60,bottom:60,left:120,right:120},children:[new Paragraph({children:[new TextRun({text:`今回：${cur}/10　前回：${prev||'─'}/10　`,bold:true,size:18,font:'Arial'}),new TextRun({text:ds,bold:true,size:18,font:'Arial',color:dc})]})]}) ,cl(comment||'',{width:4026,size:17})]})};
+    const bar=(v,fill)=>[new TextRun({text:'■'.repeat(Math.max(0,Math.min(10,v))),size:18,font:{ascii:'MS Gothic',eastAsia:'MS Gothic'},color:fill}),new TextRun({text:'■'.repeat(10-Math.max(0,Math.min(10,v))),size:18,font:{ascii:'MS Gothic',eastAsia:'MS Gothic'},color:'E3E3E3'})];
+    const scRow=(label,cur,prev,comment)=>{const diff=cur-(prev||0),down=prev&&diff<0,up=prev&&diff>0,curColor=down?'CC0000':BLUE;
+      const ds=prev?(diff===0?'　→':(diff>0?'　↑+'+diff:'　↓'+diff)):'';
+      const lines=[new Paragraph({spacing:{after:40},children:[new TextRun({text:'今回 ',size:16,font:'Arial',color:'555555'}),...bar(cur,curColor),new TextRun({text:' '+cur,bold:true,size:20,font:'Arial',color:curColor}),new TextRun({text:ds,bold:true,size:16,font:'Arial',color:down?'CC0000':up?'006600':'666666'})]}),
+        new Paragraph({children:prev?[new TextRun({text:'前回 ',size:16,font:'Arial',color:'555555'}),...bar(prev,'A6A6A6'),new TextRun({text:' '+prev,size:16,font:'Arial',color:'777777'})]:[new TextRun({text:'前回 ─（初回）',size:16,font:'Arial',color:'999999'})]})];
+      return new TableRow({cantSplit:true,children:[cl(label,{width:1800,bold:true,size:18,bg:down?'FDECEC':WHITE}),new TableCell({borders:bds,width:{size:3400,type:WidthType.DXA},margins:{top:80,bottom:80,left:120,right:120},verticalAlign:VerticalAlign.CENTER,children:lines}),cl(comment||'',{width:3826,size:17})]})};
     let alertBg=WHITE,alertTxt='';
     if(d.alertLevel==='urgent'){alertBg=RED_BG;alertTxt=`🔴 【要緊急対応】　${d.alertContent||''}`;}
     else if(d.alertLevel==='caution'){alertBg=YELLOW_BG;alertTxt=`🟡 【要注意】　${d.alertContent||''}`;}
@@ -758,12 +766,13 @@ async function generateWordReport(d,btnId){
           ]}),
           sp(),
           sec('■ 評価スコア（前回比較）'),
-          new Table({width:{size:CW,type:WidthType.DXA},columnWidths:[2000,3000,4026],rows:[
-            new TableRow({children:[hcl('項目',2000),hcl('スコア',3000),hcl('根拠・コメント',4026)]}),
+          new Table({width:{size:CW,type:WidthType.DXA},columnWidths:[1800,3400,3826],rows:[
+            new TableRow({tableHeader:true,children:[hcl('項目',1800),hcl('スコア（10点満点）',3400),hcl('根拠・コメント',3826)]}),
             scRow('モチベーション',sc2.motivation||0,ps.motivation||0,scc.motivation||''),
             scRow('職場適応度',sc2.adaptation||0,ps.adaptation||0,scc.adaptation||''),
-            scRow('精神的安定度',sc2.stability||0,ps.stability||0,scc.stability||''),
-            scRow('日本語力',sc2.japanese_skill||0,ps.japanese_skill||0,scc.japanese_skill||''),
+            scRow('心身の安定度',sc2.stability||0,ps.stability||0,scc.stability||''),
+            scRow('定着意向',sc2.retention||0,ps.retention||0,scc.retention||''),
+            scRow('日本語・資格への取り組み',sc2.japanese_skill||0,ps.japanese_skill||0,scc.japanese_skill||''),
           ]}),
           sp(),
           sec('■ 面談内容'),
