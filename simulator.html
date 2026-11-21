@@ -143,7 +143,7 @@ hr { border: none; border-top: 1px solid #f0f0f0; margin: 1rem 0; }
         <span class="unit">円</span>
       </div>
       <div class="row">
-        <label>紹介料</label>
+        <label>コンサル費</label>
         <input type="number" id="p_shokai" value="200000" step="10000" oninput="update()">
         <span class="unit">円</span>
       </div>
@@ -282,7 +282,7 @@ hr { border: none; border-top: 1px solid #f0f0f0; margin: 1rem 0; }
     <table class="bk">
       <tr><td colspan="2" class="muted" style="font-size:11px;padding-bottom:3px">── イニシャル内訳（1名あたり×人数）──</td></tr>
       <tr><td class="muted">事務手数料</td><td id="b_jimu">-</td></tr>
-      <tr><td class="muted">紹介料</td><td id="b_shokai">-</td></tr>
+      <tr><td class="muted">コンサル費</td><td id="b_shokai">-</td></tr>
       <tr><td class="muted">行政書士（5年3回分）</td><td id="b_i_gyosei">-</td></tr>
       <tr><td class="muted">ビザ費用（初回）</td><td id="b_i_visa">-</td></tr>
       <tr><td class="muted">送り出し機関紹介料</td><td id="b_i_sendout">-</td></tr>
@@ -574,7 +574,7 @@ function update() {
   if (iFormulaEl) {
     iFormulaEl.innerHTML =
       '【計算根拠・全員分（' + workers + '名）】<br>' +
-      '売上　(事務手数料' + fmt(p_jimu) + ' + 紹介料' + fmt(p_shokai) + ') × ' + workers + '名 = ' + fmt(initial_rev) + '<br>' +
+      '売上　(事務手数料' + fmt(p_jimu) + ' + コンサル費' + fmt(p_shokai) + ') × ' + workers + '名 = ' + fmt(initial_rev) + '<br>' +
       '経費　(行政書士' + fmt(i_gyosei) + '【5年3回分】 + ビザ' + fmt(i_visa) + ' + 送り出し' + fmt(i_sendout) + ' + 事務人件費' + fmt(i_jinken) + ') × ' + workers + '名 = ' + fmt(initial_cost_per_worker) + '<br>' +
       '　　+ 配属同行費（出張1回合計 ' + fmt(initial_travel_total) + '、人数で割らず1回分） = ' + fmt(initial_cost_per_worker) + ' + ' + fmt(initial_travel_total) + ' = ' + fmt(initial_cost) + '<br>' +
       '─────────<br>' +
